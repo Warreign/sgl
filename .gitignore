@@ -1,0 +1,10 @@
+
+out/*
+build/*
+install/*
+
+sgl-rust/*
+sgl-zig/*
+
+.vscode/*
+.vs/*
