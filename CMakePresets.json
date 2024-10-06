@@ -6,11 +6,12 @@
             "displayName": "Default Ninja MC",
             "description": "Sets Ninja generator, build and install directory",
             "generator": "Ninja Multi-Config",
-            "binaryDir": "${sourceDir}/out/build",
+            "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/bin",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin",
                 "CMAKE_CXX_COMPILER" : "cl.exe",
-                "CMAKE_C_COMPILER" : "cl.exe"
+                "CMAKE_C_COMPILER" : "cl.exe",
+                "CMAKE_EXPORT_COMPILE_COMMANDS" : "1"
             }
         },
         {

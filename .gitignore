@@ -3,6 +3,9 @@ out/*
 build/*
 install/*
 
+.cache/*
+.clangd
+
 sgl-rust/*
 sgl-zig/*
 

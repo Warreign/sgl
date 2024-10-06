@@ -16,7 +16,7 @@ find_package(OpenGL)
 
 # Set general compiler flags.
 if (WIN32)
-  add_definitions(-D__WINDOWS__ -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
+  add_definitions(-D__WINDOWS__ -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -w7)
 endif (WIN32)
 
 if (APPLE)
@@ -90,6 +90,8 @@ else()
   message(STATUS "Using C++ backend")
   add_subdirectory(sgl-cpp)
 endif()
+
+target_compile_definitions(${NAME} PRIVATE -w)
 
 # Link libraries.
 target_link_libraries(${NAME} sgl ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})

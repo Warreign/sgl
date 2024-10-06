@@ -1,5 +1,7 @@
 #include "sgl.h"
 
+#include "math/vector.h"
+
 #include <iostream>
 
 void sglInit(void)
@@ -19,6 +21,13 @@ const char *sglGetErrorString(sglEErrorCode error)
 
 void sglFinish(void)
 {
+    sgl::vec3 test_vector(1, 2, 3);
+    // sgl::vec2 tvec2(test_vector);
+
+    std::cout << test_vector.x << std::endl;
+    std::cout << test_vector.g << std::endl;
+
+    std::cout << "Finishing SGL!" << std::endl;
 }
 
 int sglCreateContext(int width, int height)
