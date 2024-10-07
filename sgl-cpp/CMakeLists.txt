@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.8)
 file(GLOB_RECURSE SGL_CXX "src/*.cpp")
 add_library(${PROJECT_NAME} STATIC ${SGL_CXX})
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 target_sources(${PROJECT_NAME} PRIVATE ${SGL_CXX})
 

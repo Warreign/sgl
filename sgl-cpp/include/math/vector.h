@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <type_traits>
 
 namespace sgl
 {
@@ -16,32 +17,38 @@ namespace
         // Default initializer constructor
         constexpr Vector(void);
     
+
         // Value arguments constructors
-        template <typename I> requires (N == 2) && std::is_arithmetic_v<I>
+        template <typename I, typename = std::enable_if_t<N == 2 && std::is_arithmetic_v<I>>>
         constexpr Vector(I x, I y);
 
-        template <typename I> requires (N == 3) && std::is_arithmetic_v<I>
+        template <typename I, typename = std::enable_if_t<N == 3 && std::is_arithmetic_v<I>>>
         constexpr Vector(I x, I y, I z);
 
-        template <typename I> requires (N == 4) && std::is_arithmetic_v<I>
+        template <typename I, typename = std::enable_if_t<N == 4 && std::is_arithmetic_v<I>>>
         constexpr Vector(I x, I y, I z, I w);
 
+
         // Scalar constructor
-        template <typename I> requires std::is_arithmetic_v<I>
+        template <typename I, typename = std::enable_if_t<std::is_arithmetic_v<I>>>
         constexpr explicit Vector(I scalar);
+
 
         // Copy constructors 
         constexpr Vector(const Vector<N, T>& other) = default;
 
-        // template <size_t N2, typename T2> requires (N <= N2)
+        // template <size_t N2, typename T2, typename = std::enable_if_t<N <= N2>>
         // constexpr Vector(const Vector<N2, T2>& other);
+
 
         // Move constructor
         constexpr Vector(Vector<N, T>&& other) = default;
 
+
         // List constructor
-        template <typename I> requires std::is_arithmetic_v<I>
-        constexpr Vector(const I(&l)[N]);
+        template <typename I, typename = std::enable_if_t<std::is_arithmetic_v<I>>>
+        constexpr Vector(const I (&l)[N]);
+
 
     private:
         struct Empty {};
@@ -73,7 +80,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    template <typename I> requires std::is_arithmetic_v<I>
+    template <typename I, typename >
     inline constexpr Vector<N, T>::Vector(const I (&l)[N])
     {
         for (int i = 0; i < N; ++i)
@@ -83,7 +90,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    template <typename I> requires (N == 2) && std::is_arithmetic_v<I>
+    template <typename I, typename >
     inline constexpr Vector<N, T>::Vector(I x, I y)
         : x(static_cast<T>(x)),
           y(static_cast<T>(y))
@@ -91,7 +98,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    template <typename I> requires (N == 3) && std::is_arithmetic_v<I>
+    template <typename I, typename >
     inline constexpr Vector<N, T>::Vector(I x, I y, I z)
         : x(static_cast<T>(x)),
           y(static_cast<T>(y)),
@@ -100,7 +107,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    template <typename I> requires (N == 4) && std::is_arithmetic_v<I>
+    template <typename I, typename >
     inline constexpr Vector<N, T>::Vector(I x, I y, I z, I w)
         : x(static_cast<T>(x)),
           y(static_cast<T>(y)),
@@ -111,14 +118,14 @@ namespace
 
     
     template <size_t N, typename T>
-    template <typename I> requires std::is_arithmetic_v<I>
+    template <typename I, typename >
     inline constexpr Vector<N, T>::Vector(I scalar)
     {
         m_data.fill(static_cast<T>(scalar));
     }
 
     // template <size_t N, typename T>
-    // template <size_t N2, typename T2> requires (N <= N2)
+    // template <size_t N2, typename T2, typename >
     // inline constexpr Vector<N, T>::Vector(const Vector<N2, T2>& other)
     // {
     // }
