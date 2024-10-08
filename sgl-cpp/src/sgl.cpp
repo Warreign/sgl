@@ -2,6 +2,7 @@
 
 #include "math/vector.h"
 
+#include <ios>
 #include <iostream>
 
 void sglInit(void)
@@ -28,6 +29,11 @@ void sglFinish(void)
     std::cout << test_vector.g << std::endl;
 
     std::cout << "Finishing SGL!" << std::endl;
+
+    std::cout << std::boolalpha << (sgl::vec2() == sgl::vec2()) << std::endl;
+    std::cout << (sgl::vec2(1, 2) != sgl::vec2(1,2)) << std::endl;
+    std::cout << (sgl::vec2(1, 2) != sgl::vec2(2, 1)) << std::endl;
+    std::cout << (sgl::vec2(1, 2) == sgl::vec2(1,2)) << std::endl;
 }
 
 int sglCreateContext(int width, int height)
