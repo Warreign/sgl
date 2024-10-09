@@ -10,15 +10,77 @@ namespace sgl
 
 namespace 
 {
+    template <size_t N, typename T>
+    struct VectorData;
+
+    template <typename T>
+    struct VectorData<2, T>
+    {
+        constexpr VectorData() = default;
+        constexpr VectorData(T x, T y)
+            : x(x), y(y)
+        {
+        }
+
+        union {
+            struct {
+                union { T x, r; };
+                union { T y, g; };
+            };
+            std::array<T, 2> m_data;
+        };
+    };
+
+    template <typename T>
+    struct VectorData<3, T>
+    {
+        constexpr VectorData() = default;
+        constexpr VectorData(T x, T y, T z)
+            : x(x), y(y), z(z)
+        {
+        }
+
+        union {
+            struct {
+                union { T x, r; };
+                union { T y, g; };
+                union { T z, b; };
+            };
+            std::array<T, 3> m_data;
+        };
+    };
+
+    template <typename T>
+    struct VectorData<4, T>
+    {
+        constexpr VectorData() = default;
+        constexpr VectorData(T x, T y, T z, T w)
+            : x(x), y(y), z(z), w(w)
+        {
+        }
+
+        union {
+            struct {
+                union { T x, r; };
+                union { T y, g; };
+                union { T z, b; };
+                union { T w, a; };
+            };
+            std::array<T, 4> m_data;
+        };
+    };
+
 
     template <size_t N, typename T>
-    class Vector
+    class Vector : public VectorData<N, T>
     {
     public:
+        using data_type = T;
+        constexpr static std::size_t size = N;
 
         // Default initializer constructor
         constexpr Vector();
-    
+
 
         // Value arguments constructors
         template <typename I, typename = std::enable_if_t<N == 2 && std::is_arithmetic_v<I>>>
@@ -60,15 +122,6 @@ namespace
         using T4 = std::conditional_t<N >= 4, T, Empty>;
     
     public:
-        union {
-            struct {
-                union { T1 x, r; };
-                union { T2 y, g; };
-                union { T3 z, b; };
-                union { T4 w, a; };
-            };
-            std::array<T, N> m_data;
-        };
 
         // Access operators
         constexpr T& operator[](size_t i);
@@ -210,27 +263,21 @@ namespace
     template <size_t N, typename T>
     template <typename I, typename >
     inline constexpr Vector<N, T>::Vector(I x, I y)
-        : x(static_cast<T>(x)),
-          y(static_cast<T>(y))
+        : VectorData<2, T>(static_cast<T>(x), static_cast<T>(y))
     {
     }
 
     template <size_t N, typename T>
     template <typename I, typename >
     inline constexpr Vector<N, T>::Vector(I x, I y, I z)
-        : x(static_cast<T>(x)),
-          y(static_cast<T>(y)),
-          z(static_cast<T>(z))
+        : VectorData<3, T>(static_cast<T>(x), static_cast<T>(y), static_cast<T>(z))
     {
     }
 
     template <size_t N, typename T>
     template <typename I, typename >
     inline constexpr Vector<N, T>::Vector(I x, I y, I z, I w)
-        : x(static_cast<T>(x)),
-          y(static_cast<T>(y)),
-          z(static_cast<T>(z)),
-          w(static_cast<T>(w))
+        : VectorData<4, T>(static_cast<T>(x), static_cast<T>(y), static_cast<T>(z), static_cast<T>(w))
     {
     }
 
@@ -384,12 +431,12 @@ namespace
 } // namespace
 
 // Vector type definitions
-typedef Vector<2, double> vec2;
-typedef Vector<3, double> vec3;
-typedef Vector<4, double> vec4;
+typedef Vector<2, float> vec2;
+typedef Vector<3, float> vec3;
+typedef Vector<4, float> vec4;
 
-typedef Vector<2, float> vec2f;
-typedef Vector<3, float> vec3f;
-typedef Vector<4, float> vec4f;
+typedef Vector<2, double> vec2d;
+typedef Vector<3, double> vec3d;
+typedef Vector<4, double> vec4d;
 
 } // namespace sgl
