@@ -131,16 +131,16 @@ namespace
         constexpr const T& operator[](size_t i) const;
 
         // Arithmetic vector operators
-        constexpr T& operator+=(const Vector<N, T>& other);
-        constexpr T& operator-=(const Vector<N, T>& other);
-        constexpr T& operator*=(const Vector<N, T>& other);
-        constexpr T& operator/=(const Vector<N, T>& other);
+        constexpr Vector<N, T>& operator+=(const Vector<N, T>& other);
+        constexpr Vector<N, T>& operator-=(const Vector<N, T>& other);
+        constexpr Vector<N, T>& operator*=(const Vector<N, T>& other);
+        constexpr Vector<N, T>& operator/=(const Vector<N, T>& other);
 
         // In/decrement operators
-        constexpr T& operator++();
-        constexpr T& operator--();
-        constexpr T operator++(int);
-        constexpr T operator--(int);
+        constexpr Vector<N, T>& operator++();
+        constexpr Vector<N, T>& operator--();
+        constexpr Vector<N, T> operator++(int);
+        constexpr Vector<N, T> operator--(int);
 
         // Assignment operator
         template <typename I, typename = std::enable_if_t<std::is_arithmetic_v<I>>>

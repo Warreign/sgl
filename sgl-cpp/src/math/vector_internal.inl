@@ -40,7 +40,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    inline constexpr T& Vector<N, T>::operator+=(const Vector<N, T>& other)
+    inline constexpr Vector<N, T>& Vector<N, T>::operator+=(const Vector<N, T>& other)
     {
         for (int i = 0; i < N; ++i)
         {
@@ -50,7 +50,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    inline constexpr T& Vector<N, T>::operator-=(const Vector<N, T>& other)
+    inline constexpr Vector<N, T>& Vector<N, T>::operator-=(const Vector<N, T>& other)
     {        
         for (int i = 0; i < N; ++i)
         {
@@ -60,7 +60,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    inline constexpr T& Vector<N, T>::operator*=(const Vector<N, T>& other)
+    inline constexpr Vector<N, T>& Vector<N, T>::operator*=(const Vector<N, T>& other)
     {
         for (int i = 0; i < N; ++i)
         {
@@ -70,7 +70,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    inline constexpr T& Vector<N, T>::operator/=(const Vector<N, T>& other)
+    inline constexpr Vector<N, T>& Vector<N, T>::operator/=(const Vector<N, T>& other)
     {
         for (int i = 0; i < N; ++i)
         {
@@ -80,7 +80,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    inline constexpr T& Vector<N, T>::operator++()
+    inline constexpr Vector<N, T>& Vector<N, T>::operator++()
     {
         for (int i = 0; i < N; ++i)
         {
@@ -90,7 +90,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    inline constexpr T& Vector<N, T>::operator--()
+    inline constexpr Vector<N, T>& Vector<N, T>::operator--()
     {
         for (int i = 0; i < N; ++i)
         {
@@ -100,7 +100,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    inline constexpr T Vector<N, T>::operator++(int)
+    inline constexpr Vector<N, T> Vector<N, T>::operator++(int)
     {
         Vector<N, T> ret = *this;
         ++*this;
@@ -108,7 +108,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    inline constexpr T Vector<N, T>::operator--(int)
+    inline constexpr Vector<N, T> Vector<N, T>::operator--(int)
     {
         Vector<N, T> ret = *this;
         --*this;
