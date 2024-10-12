@@ -3,6 +3,9 @@
 #include <array>
 #include <type_traits>
 #include <ostream>
+#include <string>
+#include <sstream>
+#include <winscard.h>
 
 namespace sgl
 {
@@ -151,15 +154,11 @@ namespace
 
         constexpr Vector<N, T>& operator=(Vector<N, T>&& other);
 
+        std::string toString(char start = '(', char end = ')') const;
+
         friend std::ostream &operator<<(std::ostream &os, const Vector<N, T> &rhs)
         {
-            os << "(" << rhs[0];
-            for (size_t i = 1; i < N; ++i)
-            {
-                os << ", " << rhs[i];
-            }
-            os << ")";
-            return os;
+            return os << rhs.toString();
         }
 
     };
@@ -191,6 +190,19 @@ namespace
 
     template <size_t N, typename T>
     constexpr bool operator!=(const Vector<N, T>& v1, const Vector<N, T>& v2);
+
+    template <size_t N, typename T>
+    inline std::string Vector<N, T>::toString(char start, char end) const
+    {
+        std::stringstream ss;
+        ss << start << this->m_data[0];
+        for (int i = 1; i < N; ++i)
+        {
+            ss << ", " << this->m_data[i];
+        }
+        ss << end;
+        return ss.str();
+    }
 
 } // namespace
 

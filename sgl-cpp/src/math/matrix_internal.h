@@ -48,11 +48,11 @@ namespace sgl
 
         friend std::ostream &operator<<(std::ostream &os, const Matrix<N, M, T> &rhs)
         {
-            Matrix<M, N, T> trhs = rhs.transpose();
-            os << '|' << trhs[0] << '|';
+            Matrix<M, N, T> rhsT = rhs.transpose();
+            os << rhsT[0].toString('|', '|');
             for (size_t i = 1; i < M; ++i)
             {
-                os << "\n|" << trhs[i] << '|';
+                os << "\n" << rhsT[i].toString('|', '|');
             }
             return os << '\n';
         }
