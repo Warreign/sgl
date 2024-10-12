@@ -46,6 +46,7 @@ namespace
             };
             std::array<T, 2> m_data;
         };
+
     };
 
     template <typename T>
@@ -149,13 +150,13 @@ namespace
         constexpr Vector<N, T>& operator=(const Vector<N, I>& other);
 
         constexpr Vector<N, T>& operator=(Vector<N, T>&& other);
-        
+
         friend std::ostream &operator<<(std::ostream &os, const Vector<N, T> &rhs)
         {
             os << "(" << rhs[0];
             for (size_t i = 1; i < N; ++i)
             {
-                os << ",\n " << rhs[i];
+                os << ", " << rhs[i];
             }
             os << ")";
             return os;

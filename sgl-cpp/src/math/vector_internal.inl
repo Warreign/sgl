@@ -1,8 +1,6 @@
-#include "vector_internal.h"
-
 #include <cassert>
-#include <functional>
 #include <algorithm>
+#include <iostream>
 
 namespace sgl 
 {
@@ -18,7 +16,7 @@ namespace
     }
 
     template <size_t N, typename T>
-    constexpr Vector<N, T>::Vector(Vector<N, T> &&other) 
+    inline constexpr Vector<N, T>::Vector(Vector<N, T> &&other) 
     {
         this->m_data = std::move(other.m_data);
     }
