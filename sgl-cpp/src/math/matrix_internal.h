@@ -77,6 +77,9 @@ namespace sgl
     template <size_t N, size_t M, size_t M2, typename T>
     constexpr Matrix<M2, M, T> operator*(const Matrix<N, M, T>& m1, const Matrix<M2, N, T>& m2);
 
+    template <size_t N, size_t M, typename T>
+    constexpr Vector<M, T> operator*(const Matrix<N, M, T>& m, const Vector<M, T>& v);
+
 }
 
 #include "matrix_internal.inl"

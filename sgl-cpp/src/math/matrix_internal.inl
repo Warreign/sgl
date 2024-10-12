@@ -138,8 +138,8 @@ namespace sgl
         {
             for (size_t j = 0; j < M2; ++j)
             {
-                auto v = _m1.m_data[i];
-                auto& v2 = m2.m_data[j];
+                auto v = _m1[i];
+                auto& v2 = m2[j];
                 T val = static_cast<T>(0.0);
                 v *= v2;
                 val = std::reduce(v.m_data.begin(), v.m_data.end(), static_cast<T>(0.0));
@@ -148,6 +148,13 @@ namespace sgl
         }
 
         return ret;
+    }
+
+    template <size_t N, size_t M, typename T>
+    inline constexpr Vector<M, T> operator*(const Matrix<N, M, T>& m, const Vector<M, T>& v)
+    {
+        Matrix<1, M, T> mv({v});
+        return (m * mv)[0];
     }
 
     template <size_t N, size_t M, typename T>
