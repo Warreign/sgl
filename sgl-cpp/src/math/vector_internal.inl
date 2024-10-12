@@ -116,6 +116,13 @@ namespace
     }
 
     template <size_t N, typename T>
+    inline constexpr Vector<N, T>& Vector<N, T>::operator=(const Vector<N, T>& other)
+    {
+        m_data = other.m_data;
+        return *this;
+    }
+
+    template <size_t N, typename T>
     template <typename I, typename >
     inline constexpr Vector<N, T>& Vector<N, T>::operator=(const Vector<N, I>& other)
     {

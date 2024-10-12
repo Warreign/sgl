@@ -3,6 +3,7 @@
 #include "math/Vector.h"
 
 #include <array>
+#include <numeric>
 #include <type_traits>
 #include <algorithm>
 #include <ostream>
@@ -18,8 +19,8 @@ namespace sgl
         constexpr static std::size_t column_size = M;
         constexpr static std::size_t row_size = N;
 
-    private:
         std::array<column_t, N> m_data;
+    private:
 
     public:
 
@@ -62,7 +63,7 @@ namespace sgl
     template <size_t N, size_t M, typename T>
     constexpr Matrix<N, M, T> operator-(const Matrix<N, M, T>& m1, const Matrix<N, M, T>& m2);
     template <size_t N, size_t M, size_t M2, typename T>
-    constexpr Matrix<M, M2, T> operator*(const Matrix<N, M, T>& m1, const Matrix<M2, N, T>& m2);
+    constexpr Matrix<M2, M, T> operator*(const Matrix<N, M, T>& m1, const Matrix<M2, N, T>& m2);
 
     template <size_t N, size_t M, typename T>
     constexpr Matrix<N, M, T>::Matrix(const column_t (& list)[N])
@@ -174,7 +175,7 @@ namespace sgl
     template <size_t N, size_t M, typename T>
     constexpr Matrix<N, M, T> operator+(const Matrix<N, M, T> &m1, const Matrix<N, M, T> &m2)
     {
-        Matrix<N, M, T> ret = m1;
+        constexpr Matrix<N, M, T> ret = m1;
         ret += m2;
         return ret;
     }
@@ -182,16 +183,35 @@ namespace sgl
     template <size_t N, size_t M, typename T>
     constexpr Matrix<N, M, T> operator-(const Matrix<N, M, T> &m1, const Matrix<N, M, T> &m2)
     {
-        Matrix<N, M, T> ret = m1;
+        constexpr Matrix<N, M, T> ret = m1;
         ret -= m2;
         return ret;
     }
 
     template <size_t N, size_t M, size_t M2, typename T>
-    constexpr Matrix<M, M2, T> operator*(const Matrix<N, M, T> &m1, const Matrix<M2, N, T> &m2) 
+    constexpr Matrix<M2, M, T> operator*(const Matrix<N, M, T> &m1, const Matrix<M2, N, T> &m2) 
     {
-        Matrix<M, M2, T> ret;
+        Matrix<M2, M, T> ret;
+        Matrix<N, M, T> _m1 = m1.transpose();
 
+        for (size_t i = 0; i < M; ++i)
+        {
+            for (size_t j = 0; j < M2; ++j)
+            {
+                auto v = _m1.m_data[i];
+                auto& v2 = m2.m_data[j];
+
+                v *= v2;
+                // std::transform(v1.m_data.begin(), v1.m_data.end(), v2.m_data.begin(), std::multiplies<T>());
+                // T val = std::reduce(v1.m_data.begin(), v1.m_data.end(), static_cast<T>(0.0));
+                T val = static_cast<T>(0.0);
+                for (int i = 0; i < v.size; ++i)
+                {
+                    val += v[i];
+                }
+                ret[j][i] = val;
+            }
+        }
 
         return ret;
     }

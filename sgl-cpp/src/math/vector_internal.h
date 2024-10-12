@@ -143,6 +143,8 @@ namespace
         constexpr Vector<N, T> operator--(int);
 
         // Assignment operator
+        constexpr Vector<N, T>& operator=(const Vector<N, T>& other);
+
         template <typename I, typename = std::enable_if_t<std::is_arithmetic_v<I>>>
         constexpr Vector<N, T>& operator=(const Vector<N, I>& other);
 
