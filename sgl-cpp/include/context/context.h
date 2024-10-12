@@ -1,5 +1,11 @@
 #pragma once
 
+#include "utils/common.h"
+
+#include "math/vector.h"
+#include "math/matrix.h"
+
+#include <vector>
 #include <cstdint>
 
 namespace sgl
@@ -14,11 +20,31 @@ public:
 
     explicit Context(int width, int height);
 
-private:
-    const uint32_t m_id;
+    void clearColor();
+    float* colorBufferData() const;
 
-    const uint32_t m_width;
-    const uint32_t m_height;
+    void applyToTransform(mat4& matrix);
+
+    int getId() const;
+
+private:
+    const int m_id;
+
+    const int m_width;
+    const int m_height;
+
+
+    // Matrices
+    mat4 m_matModelView;
+    mat4 m_matProjection;
+    mat4& m_matCurrent;
+
+    // Color buffer
+    vec4 m_clearColor;
+    std::vector<vec4> m_colorBuffer;
+
+    // Depth buffer
+    std::vector<uint8_t> m_depthBuffer;
 
 };
 
