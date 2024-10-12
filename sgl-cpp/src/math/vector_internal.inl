@@ -1,3 +1,5 @@
+#include "vector_internal.h"
+
 #include <cassert>
 #include <functional>
 #include <algorithm>
@@ -12,20 +14,20 @@ namespace
     template <size_t N, typename T>
     inline constexpr Vector<N, T>::Vector()
     {
-        m_data.fill(static_cast<T>(0));
+        this->m_data.fill(static_cast<T>(0));
     }
 
     template <size_t N, typename T>
     constexpr Vector<N, T>::Vector(Vector<N, T> &&other) 
     {
-        m_data = std::move(other.m_data);
+        this->m_data = std::move(other.m_data);
     }
 
     template <size_t N, typename T>
     template <typename I, typename>
     inline constexpr Vector<N, T>::Vector(const I (&l)[N]) {
       for (int i = 0; i < N; ++i) {
-        m_data[i] = static_cast<T>(l[i]);
+        this->m_data[i] = static_cast<T>(l[i]);
       }
     }
 
@@ -33,14 +35,14 @@ namespace
     inline constexpr T& Vector<N, T>::operator[](size_t i)
     {
         assert(i >= 0 && i < N);
-        return m_data[i];
+        return this->m_data[i];
     }
 
     template <size_t N, typename T>
     inline constexpr const T& Vector<N, T>::operator[](size_t i) const 
     {
         assert(i >= 0 && i < N);
-        return m_data[i];
+        return this->m_data[i];
     }
 
     template <size_t N, typename T>
@@ -48,7 +50,7 @@ namespace
     {
         for (int i = 0; i < N; ++i)
         {
-            m_data[i] += other.m_data[i];
+            this->m_data[i] += other.m_data[i];
         }
         return *this;
     }
@@ -58,7 +60,7 @@ namespace
     {        
         for (int i = 0; i < N; ++i)
         {
-            m_data[i] -= other.m_data[i];
+            this->m_data[i] -= other.m_data[i];
         }
         return *this;
     }
@@ -68,7 +70,7 @@ namespace
     {
         for (int i = 0; i < N; ++i)
         {
-            m_data[i] *= other.m_data[i];
+            this->m_data[i] *= other.m_data[i];
         }
         return *this;
     }
@@ -78,7 +80,7 @@ namespace
     {
         for (int i = 0; i < N; ++i)
         {
-            m_data[i] /= other.m_data[i];
+            this->m_data[i] /= other.m_data[i];
         }
         return *this;
     }
@@ -88,7 +90,7 @@ namespace
     {
         for (int i = 0; i < N; ++i)
         {
-            ++m_data[i];
+            ++this->m_data[i];
         }
         return *this;
     }
@@ -98,7 +100,7 @@ namespace
     {
         for (int i = 0; i < N; ++i)
         {
-            --m_data[i];
+            --this->m_data[i];
         }
         return *this;
     }
@@ -122,7 +124,7 @@ namespace
     template <size_t N, typename T>
     inline constexpr Vector<N, T>& Vector<N, T>::operator=(const Vector<N, T>& other)
     {
-        m_data = other.m_data;
+        this->m_data = other.m_data;
         return *this;
     }
 
@@ -132,7 +134,7 @@ namespace
     {
         for (int i = 0; i < N; ++i)
         {
-            m_data[i] = static_cast<T>(other.m_data[i]);
+            this->m_data[i] = static_cast<T>(other.m_data[i]);
         }
         return *this;
     }
@@ -140,7 +142,7 @@ namespace
     template <size_t N, typename T>
     inline constexpr Vector<N, T>& Vector<N, T>::operator=(Vector<N, T>&& other) 
     {
-        m_data = std::move(other.m_data);
+        this->m_data = std::move(other.m_data);
         return *this;
     }
 
@@ -168,7 +170,7 @@ namespace
     template <typename I, typename >
     inline constexpr Vector<N, T>::Vector(I scalar)
     {
-        m_data.fill(static_cast<T>(scalar));
+        this->m_data.fill(static_cast<T>(scalar));
     }
 
     template <size_t N, typename T>
@@ -177,7 +179,7 @@ namespace
     {
         for (int i = 0; i < N; ++i)
         {
-            m_data[i] = static_cast<T>(other.m_data[i]);
+            this->m_data[i] = static_cast<T>(other.m_data[i]);
         }
     }
     
