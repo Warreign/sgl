@@ -91,8 +91,6 @@ else()
   add_subdirectory(sgl-cpp)
 endif()
 
-target_compile_definitions(${NAME} PRIVATE -w)
-
 # Link libraries.
 target_link_libraries(${NAME} sgl ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
 
@@ -111,3 +109,6 @@ set_target_properties(${NAME} PROPERTIES
 install(TARGETS ${NAME}
   RUNTIME DESTINATION ${BIN_DIR}
 )
+
+enable_testing()
+add_subdirectory(tests)

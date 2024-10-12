@@ -97,7 +97,7 @@ namespace
 
         // Default initializer constructor
         constexpr Vector();
-
+        constexpr Vector(Vector<N, T>&& other);
 
         // Value arguments constructors
         template <typename I, typename = std::enable_if_t<N == 2 && std::is_arithmetic_v<I>>>
@@ -148,8 +148,7 @@ namespace
         template <typename I, typename = std::enable_if_t<std::is_arithmetic_v<I>>>
         constexpr Vector<N, T>& operator=(const Vector<N, I>& other);
 
-        template <typename I, typename = std::enable_if_t<std::is_arithmetic_v<I>>>
-        constexpr Vector<N, T>& operator=(Vector<N, I> other);
+        constexpr Vector<N, T>& operator=(Vector<N, T>&& other);
         
         friend std::ostream &operator<<(std::ostream &os, const Vector<N, T> &rhs)
         {

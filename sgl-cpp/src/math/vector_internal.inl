@@ -16,13 +16,17 @@ namespace
     }
 
     template <size_t N, typename T>
-    template <typename I, typename >
-    inline constexpr Vector<N, T>::Vector(const I (&l)[N])
+    constexpr Vector<N, T>::Vector(Vector<N, T> &&other) 
     {
-        for (int i = 0; i < N; ++i)
-        {
-            m_data[i] = static_cast<T>(l[i]);
-        }
+        m_data = std::move(other.m_data);
+    }
+
+    template <size_t N, typename T>
+    template <typename I, typename>
+    inline constexpr Vector<N, T>::Vector(const I (&l)[N]) {
+      for (int i = 0; i < N; ++i) {
+        m_data[i] = static_cast<T>(l[i]);
+      }
     }
 
     template <size_t N, typename T>
@@ -134,13 +138,10 @@ namespace
     }
 
     template <size_t N, typename T>
-    template <typename I, typename >
-    inline constexpr Vector<N, T>& Vector<N, T>::operator=(Vector<N, I> other) 
+    inline constexpr Vector<N, T>& Vector<N, T>::operator=(Vector<N, T>&& other) 
     {
-        for (int i = 0; i < N; ++i)
-        {
-            m_data[i] = static_cast<T>(other.m_data[i]);
-        }
+        m_data = std::move(other.m_data);
+        return *this;
     }
 
     template <size_t N, typename T>
