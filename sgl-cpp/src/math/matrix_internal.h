@@ -33,6 +33,7 @@ namespace sgl
 
         template <typename = std::enable_if_t<N == M>>
         constexpr static Matrix<N, N, T> identity();
+
         constexpr static Matrix<N, M, T> null();
         constexpr Matrix<M, N, T> transpose() const;
 
@@ -154,14 +155,14 @@ namespace sgl
     template <size_t N, size_t M, typename T>
     constexpr typename Matrix<N, M, T>::column_t& Matrix<N, M, T>::operator[](size_t i)
     {
-        assert(i >= 0 && i < N);
+        // assert(i >= 0 && i < N);
         return m_data[i];
     }
 
     template <size_t N, size_t M, typename T>
     constexpr const typename Matrix<N, M, T>::column_t& Matrix<N, M, T>::operator[](size_t i) const
     {
-        assert(i >= 0 && i < N);
+        // assert(i >= 0 && i < N);
         return m_data[i];
     }
 
@@ -200,15 +201,9 @@ namespace sgl
             {
                 auto v = _m1.m_data[i];
                 auto& v2 = m2.m_data[j];
-
-                v *= v2;
-                // std::transform(v1.m_data.begin(), v1.m_data.end(), v2.m_data.begin(), std::multiplies<T>());
-                // T val = std::reduce(v1.m_data.begin(), v1.m_data.end(), static_cast<T>(0.0));
                 T val = static_cast<T>(0.0);
-                for (int i = 0; i < v.size; ++i)
-                {
-                    val += v[i];
-                }
+                v *= v2;
+                val = std::reduce(v.m_data.begin(), v.m_data.end(), static_cast<T>(0.0));
                 ret[j][i] = val;
             }
         }
@@ -216,15 +211,4 @@ namespace sgl
         return ret;
     }
 
-    // template <size_t N, size_t M, typename T>
-    // std::ostream &operator<<(std::ostream &os, const Matrix<N, M, T> &rhs)
-    // {
-    //     os << rhs.m_data[0];
-    //     for (size_t i = 1; i < N; ++i)
-    //     {
-    //         os << '\n';
-    //         os << rhs.m_data[i];
-    //     }
-    //     return os << '\n';
-    // }
 }
