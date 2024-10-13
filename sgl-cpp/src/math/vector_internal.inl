@@ -22,11 +22,12 @@ namespace
     }
 
     template <size_t N, typename T>
-    template <typename I, typename>
-    inline constexpr Vector<N, T>::Vector(const I (&l)[N]) {
-      for (int i = 0; i < N; ++i) {
-        this->m_data[i] = static_cast<T>(l[i]);
-      }
+    template <typename U>
+    inline constexpr Vector<N, T>::Vector(const U (&l)[N]) 
+    {
+        for (int i = 0; i < N; ++i) {
+            this->m_data[i] = static_cast<T>(l[i]);
+        }
     }
 
     template <size_t N, typename T>
@@ -127,8 +128,8 @@ namespace
     }
 
     template <size_t N, typename T>
-    template <typename I, typename >
-    inline constexpr Vector<N, T>& Vector<N, T>::operator=(const Vector<N, I>& other)
+    template <typename U>
+    inline constexpr Vector<N, T>& Vector<N, T>::operator=(const Vector<N, U>& other)
     {
         for (int i = 0; i < N; ++i)
         {
@@ -145,42 +146,45 @@ namespace
     }
 
     template <size_t N, typename T>
-    template <typename I, typename>
-    inline constexpr Vector<N, T>::Vector(I x, I y)
-        : VectorData<2, T>(static_cast<T>(x), static_cast<T>(y)) {}
+    template <typename U, size_t , typename >
+    inline constexpr Vector<N, T>::Vector(U x, U y)
+        : VectorData<2, T>(static_cast<T>(x), static_cast<T>(y)) 
+    {
+    }
 
     template <size_t N, typename T>
-    template <typename I, typename >
-    inline constexpr Vector<N, T>::Vector(I x, I y, I z)
+    template <typename U, size_t , typename >
+    inline constexpr Vector<N, T>::Vector(U x, U y, U z)
         : VectorData<3, T>(static_cast<T>(x), static_cast<T>(y), static_cast<T>(z))
     {
     }
 
     template <size_t N, typename T>
-    template <typename I, typename >
-    inline constexpr Vector<N, T>::Vector(I x, I y, I z, I w)
+    template <typename U, size_t , typename >
+    inline constexpr Vector<N, T>::Vector(U x, U y, U z, U w)
         : VectorData<4, T>(static_cast<T>(x), static_cast<T>(y), static_cast<T>(z), static_cast<T>(w))
     {
     }
 
     
     template <size_t N, typename T>
-    template <typename I, typename >
-    inline constexpr Vector<N, T>::Vector(I scalar)
+    template <typename U>
+    inline constexpr Vector<N, T>::Vector(U scalar)
     {
         this->m_data.fill(static_cast<T>(scalar));
     }
 
     template <size_t N, typename T>
-    template <size_t M, typename U, typename >
+    template <size_t M, typename U>
     inline constexpr Vector<N, T>::Vector(const Vector<M, U>& other)
+        : VectorData()
     {
-        for (int i = 0; i < N; ++i)
+        for (size_t i = 0; i < std::min<size_t>(N, M); ++i)
         {
-            this->m_data[i] = static_cast<T>(other.m_data[i]);
+            this->m_data[i] = static_cast<T>(other[i]);
         }
     }
-    
+
 // Non-class definitions
 
     template <size_t N, typename T>
@@ -194,7 +198,7 @@ namespace
         return res;
     }
 
-    template <size_t N, typename T, typename S, typename >
+    template <size_t N, typename T, typename S>
     inline constexpr Vector<N, T> operator+(const Vector<N, T>& v1, S scalar)
     {
         Vector<N, T> res(v1);
@@ -216,7 +220,7 @@ namespace
         return res;
     }
 
-    template <size_t N, typename T, typename S, typename >
+    template <size_t N, typename T, typename S>
     inline constexpr Vector<N, T> operator-(const Vector<N, T>& v1, S scalar)
     {
         Vector<N, T> res(v1);
@@ -238,7 +242,7 @@ namespace
         return res;
     }
 
-    template <size_t N, typename T, typename S, typename >
+    template <size_t N, typename T, typename S>
     inline constexpr Vector<N, T> operator*(const Vector<N, T>& v1, S scalar)
     {
         Vector<N, T> res(v1);
@@ -260,7 +264,7 @@ namespace
         return res;
     }
 
-    template <size_t N, typename T, typename S, typename >
+    template <size_t N, typename T, typename S>
     inline constexpr Vector<N, T> operator/(const Vector<N, T>& v1, S scalar)
     {
         Vector<N, T> res(v1);
@@ -281,6 +285,30 @@ namespace
     inline constexpr bool operator!=(const Vector<N, T>& v1, const Vector<N, T>& v2)
     {
         return std::mismatch(v1.m_data.begin(), v1.m_data.end(), v2.m_data.begin(), std::equal_to<>()).first == v1.m_data.begin();
+    }
+
+    template <size_t N, typename T>
+    inline std::string Vector<N, T>::toString(char start, char end) const
+    {
+        std::stringstream ss;
+        ss << start << this->m_data[0];
+        for (int i = 1; i < N; ++i)
+        {
+            ss << ", " << this->m_data[i];
+        }
+        ss << end;
+        return ss.str();
+    }
+
+    template <size_t N, typename T>
+    template <size_t M, typename U, typename Y, typename >
+    inline constexpr Vector<N, T>::Vector(const Vector<M, U>& v, const Y (& rest)[N-M])
+        : Vector(v)
+    {
+        for (int i = M; i < N; ++i)
+        {
+            this->m_data[i] = static_cast<T>(rest[i-M]);
+        }
     }
 
 }

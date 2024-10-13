@@ -14,7 +14,16 @@ namespace
 {
     
     template <size_t N, typename T>
-    struct VectorData;
+    struct VectorData
+    {
+        constexpr VectorData() = default;
+        constexpr VectorData(const T (& list)[N])
+            : m_data(list)
+        {
+        }
+
+        std::array<T, N> m_data;
+    };
 
     template <typename T>
     struct VectorData<1, T>
@@ -104,31 +113,30 @@ namespace
         constexpr Vector(Vector<N, T>&& other);
 
         // Value arguments constructors
-        template <typename I, typename = std::enable_if_t<N == 2 && std::is_arithmetic_v<I>>>
-        constexpr Vector(I x, I y);
+        template <typename U, size_t _N = N, typename = std::enable_if_t<_N == 2>>
+        constexpr Vector(U x, U y);
 
-        template <typename I, typename = std::enable_if_t<N == 3 && std::is_arithmetic_v<I>>>
-        constexpr Vector(I x, I y, I z);
+        template <typename U, size_t _N = N, typename = std::enable_if_t<_N == 3>>
+        constexpr Vector(U x, U y, U z);
 
-        template <typename I, typename = std::enable_if_t<N == 4 && std::is_arithmetic_v<I>>>
-        constexpr Vector(I x, I y, I z, I w);
-
+        template <typename U, size_t _N = N, typename = std::enable_if_t<_N == 4>>
+        constexpr Vector(U x, U y, U z, U w);
 
         // Scalar constructor
-        template <typename I, typename = std::enable_if_t<std::is_arithmetic_v<I>>>
-        constexpr explicit Vector(I scalar);
-
+        template <typename U>
+        constexpr explicit Vector(U scalar);
 
         // Copy constructors 
         constexpr Vector(const Vector<N, T>&) = default;
-
-        template <size_t M, typename U, typename = std::enable_if_t<N <= M>>
+        template <size_t M, typename U>
         constexpr Vector(const Vector<M, U>& other);
+        
+        // List constructors
+        template <typename U>
+        constexpr Vector(const U (&l)[N]);
 
-
-        // List constructor
-        template <typename I, typename = std::enable_if_t<std::is_arithmetic_v<I>>>
-        constexpr Vector(const I (&l)[N]);
+        template <size_t M, typename U, typename Y, typename = std::enable_if_t<M < N>>
+        constexpr Vector(const Vector<M, U>& v, const Y (& rest)[N-M]);
 
         // Access operators
         constexpr T& operator[](size_t i);
@@ -149,8 +157,8 @@ namespace
         // Assignment operator
         constexpr Vector<N, T>& operator=(const Vector<N, T>& other);
 
-        template <typename I, typename = std::enable_if_t<std::is_arithmetic_v<I>>>
-        constexpr Vector<N, T>& operator=(const Vector<N, I>& other);
+        template <typename U>
+        constexpr Vector<N, T>& operator=(const Vector<N, U>& other);
 
         constexpr Vector<N, T>& operator=(Vector<N, T>&& other);
 
@@ -166,22 +174,22 @@ namespace
     // Arithmetic operators
     template <size_t N, typename T>
     constexpr Vector<N, T> operator+(const Vector<N, T>& v1, const Vector<N, T>& v2);
-    template <size_t N, typename T, typename S, typename = std::enable_if_t<std::is_arithmetic_v<S>>>
+    template <size_t N, typename T, typename S>
     constexpr Vector<N, T> operator+(const Vector<N, T>& v1, S scalar);
 
     template <size_t N, typename T>
     constexpr Vector<N, T> operator-(const Vector<N, T>& v1, const Vector<N, T>& v2);
-    template <size_t N, typename T, typename S, typename = std::enable_if_t<std::is_arithmetic_v<S>>>
+    template <size_t N, typename T, typename S>
     constexpr Vector<N, T> operator-(const Vector<N, T>& v1, S scalar);
 
     template <size_t N, typename T>
     constexpr Vector<N, T> operator*(const Vector<N, T>& v1, const Vector<N, T>& v2);
-    template <size_t N, typename T, typename S, typename = std::enable_if_t<std::is_arithmetic_v<S>>>
+    template <size_t N, typename T, typename S>
     constexpr Vector<N, T> operator*(const Vector<N, T>& v1, S scalar);
 
     template <size_t N, typename T>
     constexpr Vector<N, T> operator/(const Vector<N, T>& v1, const Vector<N, T>& v2);
-    template <size_t N, typename T, typename S, typename = std::enable_if_t<std::is_arithmetic_v<S>>>
+    template <size_t N, typename T, typename S>
     constexpr Vector<N, T> operator/(const Vector<N, T>& v1, S scalar);
 
     // Comparison operators
@@ -190,19 +198,6 @@ namespace
 
     template <size_t N, typename T>
     constexpr bool operator!=(const Vector<N, T>& v1, const Vector<N, T>& v2);
-
-    template <size_t N, typename T>
-    inline std::string Vector<N, T>::toString(char start, char end) const
-    {
-        std::stringstream ss;
-        ss << start << this->m_data[0];
-        for (int i = 1; i < N; ++i)
-        {
-            ss << ", " << this->m_data[i];
-        }
-        ss << end;
-        return ss.str();
-    }
 
 } // namespace
 
