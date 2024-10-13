@@ -1,6 +1,6 @@
 #include <cassert>
 #include <algorithm>
-#include <iostream>
+#include <sstream>
 
 namespace sgl 
 {
@@ -144,45 +144,12 @@ namespace
         this->m_data = std::move(other.m_data);
         return *this;
     }
-
-    template <size_t N, typename T>
-    template <typename U, size_t , typename >
-    inline constexpr Vector<N, T>::Vector(U x, U y)
-        : VectorData<2, T>(static_cast<T>(x), static_cast<T>(y)) 
-    {
-    }
-
-    template <size_t N, typename T>
-    template <typename U, size_t , typename >
-    inline constexpr Vector<N, T>::Vector(U x, U y, U z)
-        : VectorData<3, T>(static_cast<T>(x), static_cast<T>(y), static_cast<T>(z))
-    {
-    }
-
-    template <size_t N, typename T>
-    template <typename U, size_t , typename >
-    inline constexpr Vector<N, T>::Vector(U x, U y, U z, U w)
-        : VectorData<4, T>(static_cast<T>(x), static_cast<T>(y), static_cast<T>(z), static_cast<T>(w))
-    {
-    }
-
     
     template <size_t N, typename T>
-    template <typename U>
+    template <typename U, typename >
     inline constexpr Vector<N, T>::Vector(U scalar)
     {
         this->m_data.fill(static_cast<T>(scalar));
-    }
-
-    template <size_t N, typename T>
-    template <size_t M, typename U>
-    inline constexpr Vector<N, T>::Vector(const Vector<M, U>& other)
-        : VectorData()
-    {
-        for (size_t i = 0; i < std::min<size_t>(N, M); ++i)
-        {
-            this->m_data[i] = static_cast<T>(other[i]);
-        }
     }
 
 // Non-class definitions
@@ -309,6 +276,30 @@ namespace
         {
             this->m_data[i] = static_cast<T>(rest[i-M]);
         }
+    }
+
+    template <size_t N, typename T>
+    template <size_t M, typename U, typename... Y, typename >
+    constexpr Vector<N, T>::Vector(const Vector<M, U>& v, const Y& ... rest)
+    {
+        for (size_t i = 0; i < std::min<size_t>(N, M); ++i)
+        {
+            this->m_data[i] = static_cast<T>(v[i]);
+        }
+        
+        size_t i = M;
+        ([&]()
+        {
+            this->m_data[i++] = static_cast<T>(rest);
+        }(), ...);
+    }
+
+    template <size_t N, typename T>
+    template <typename... U, typename >
+    constexpr Vector<N, T>::Vector(const U& ... values)
+    {
+        int i = 0;
+        ([&]{ this->m_data[i++] = static_cast<T>(values); } (), ...);
     }
 
 }

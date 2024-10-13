@@ -1,11 +1,10 @@
 #pragma once
 
 #include <array>
+#include <cstring>
 #include <type_traits>
 #include <ostream>
 #include <string>
-#include <sstream>
-#include <winscard.h>
 
 namespace sgl
 {
@@ -28,12 +27,6 @@ namespace
     template <typename T>
     struct VectorData<1, T>
     {
-        constexpr VectorData() = default;
-        constexpr VectorData(T x)
-            : x(x)
-        {
-        }
-
         union {
             struct {
                 union { T x, r; };
@@ -45,12 +38,6 @@ namespace
     template <typename T>
     struct VectorData<2, T>
     {
-        constexpr VectorData() = default;
-        constexpr VectorData(T x, T y)
-            : x(x), y(y)
-        {
-        }
-
         union {
             struct {
                 union { T x, r; };
@@ -64,12 +51,6 @@ namespace
     template <typename T>
     struct VectorData<3, T>
     {
-        constexpr VectorData() = default;
-        constexpr VectorData(T x, T y, T z)
-            : x(x), y(y), z(z)
-        {
-        }
-
         union {
             struct {
                 union { T x, r; };
@@ -83,12 +64,6 @@ namespace
     template <typename T>
     struct VectorData<4, T>
     {
-        constexpr VectorData() = default;
-        constexpr VectorData(T x, T y, T z, T w)
-            : x(x), y(y), z(z), w(w)
-        {
-        }
-
         union {
             struct {
                 union { T x, r; };
@@ -112,24 +87,15 @@ namespace
         constexpr Vector();
         constexpr Vector(Vector<N, T>&& other);
 
-        // Value arguments constructors
-        template <typename U, size_t _N = N, typename = std::enable_if_t<_N == 2>>
-        constexpr Vector(U x, U y);
-
-        template <typename U, size_t _N = N, typename = std::enable_if_t<_N == 3>>
-        constexpr Vector(U x, U y, U z);
-
-        template <typename U, size_t _N = N, typename = std::enable_if_t<_N == 4>>
-        constexpr Vector(U x, U y, U z, U w);
-
         // Scalar constructor
-        template <typename U>
+        template <typename U, typename = std::enable_if_t<std::is_arithmetic_v<U>>>
         constexpr explicit Vector(U scalar);
 
         // Copy constructors 
         constexpr Vector(const Vector<N, T>&) = default;
-        template <size_t M, typename U>
-        constexpr Vector(const Vector<M, U>& other);
+
+        template <size_t M, typename U, typename... Y, typename = std::enable_if_t<sizeof...(Y) == (M < N ? N - M : 0) && (std::is_arithmetic_v<Y> && ...)>>
+        constexpr Vector(const Vector<M, U>& v, const Y& ... rest);
         
         // List constructors
         template <typename U>
@@ -137,6 +103,9 @@ namespace
 
         template <size_t M, typename U, typename Y, typename = std::enable_if_t<M < N>>
         constexpr Vector(const Vector<M, U>& v, const Y (& rest)[N-M]);
+
+        template <typename... U, typename = std::enable_if_t<sizeof...(U) == N && (std::is_arithmetic_v<U> && ...)>>
+        constexpr Vector(const U& ... values);
 
         // Access operators
         constexpr T& operator[](size_t i);
