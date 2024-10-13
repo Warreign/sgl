@@ -1,8 +1,12 @@
 #include "sgl.h"
 
-#include "math/vector.h"
+#include "context/context_manager.h"
 
-#include <ios>
+#include "math/matrix.h"
+#include "math/utils.h"
+
+#include <stack>
+#include <cassert>
 #include <iostream>
 
 void sglInit(void)
@@ -12,7 +16,7 @@ void sglInit(void)
 
 sglEErrorCode sglGetError(void)
 {
-    return sglEErrorCode();
+    return static_cast<sglEErrorCode>(sgl::ContextManager::currentError);
 }
 
 const char *sglGetErrorString(sglEErrorCode error)
@@ -22,41 +26,33 @@ const char *sglGetErrorString(sglEErrorCode error)
 
 void sglFinish(void)
 {
-    sgl::vec3 test_vector(1, 2, 3);
-    // sgl::vec2 tvec2(test_vector);
-
-    std::cout << test_vector.x << std::endl;
-    std::cout << test_vector.g << std::endl;
-
-    std::cout << "Finishing SGL!" << std::endl;
-
-    std::cout << std::boolalpha << (sgl::vec2() == sgl::vec2()) << std::endl;
-    std::cout << (sgl::vec2(1, 2) != sgl::vec2(1,2)) << std::endl;
-    std::cout << (sgl::vec2(1, 2) != sgl::vec2(2, 1)) << std::endl;
-    std::cout << (sgl::vec2(1, 2) == sgl::vec2(1,2)) << std::endl;
 }
 
 int sglCreateContext(int width, int height)
 {
-    return 0;
+    return sgl::ContextManager::createContext(width, height);
 }
 
 void sglDestroyContext(int id)
 {
+    sgl::ContextManager::destroyContext(id);
 }
 
 void sglSetContext(int id)
 {
+    sgl::ContextManager::setActive(id);
 }
 
 int sglGetContext(void)
 {
-    return 0;
+    return sgl::ContextManager::getActiveId();
 }
 
 float *sglGetColorBufferPointer(void)
 {
-    return nullptr;
+    Shared<sgl::Context> context = sgl::ContextManager::active;
+    if (!context) { return nullptr; }
+    return context->colorBufferData();
 }
 
 void sglClear(unsigned what)

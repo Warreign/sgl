@@ -17,6 +17,8 @@ namespace sgl
 
         static void setActive(int id);
 
+        static int getActiveId();
+
         static Shared<Context> active;
 
         static uint8_t currentError;

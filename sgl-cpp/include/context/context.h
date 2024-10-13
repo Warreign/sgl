@@ -25,6 +25,8 @@ public:
 
     void applyToTransform(mat4& matrix);
 
+    bool isDrawing() const;
+
     int getId() const;
 
 private:
@@ -33,6 +35,7 @@ private:
     const int m_width;
     const int m_height;
 
+    bool m_isDrawing;
 
     // Matrices
     mat4 m_matModelView;

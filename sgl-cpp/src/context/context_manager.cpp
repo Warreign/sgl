@@ -67,7 +67,22 @@ namespace sgl
             return;
         }
 
+        if (active->isDrawing())
+        {
+            return;
+        }
+
         active = manager.m_contexts[id];
+    }
+
+    int ContextManager::getActiveId()
+    {
+        if (!active)
+        {
+            currentError = SGL_INVALID_OPERATION;
+            return -1;
+        }
+        return active->getId();
     }
 
     ContextManager& ContextManager::getInstance()
