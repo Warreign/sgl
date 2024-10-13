@@ -160,4 +160,17 @@ namespace sgl
     template <size_t N, size_t M, typename T>
     inline const Matrix<N, M, T> Matrix<N, M, T>::identity = Matrix<N, M, T>::_genIdentity();
 
+    template <size_t N, size_t M, typename T>
+    template <typename... U, typename >
+    constexpr Matrix<N, M, T>::Matrix(const U& ... values)
+    {
+        int i = 0;
+        ([&] {
+            int n = i % N;
+            int m = i / N;
+            this->m_data[n][m] = static_cast<T>(values);
+            ++i;
+        } (), ...);
+    }
+
 }

@@ -30,6 +30,9 @@ namespace sgl
         constexpr Matrix(const column_t (& list)[N]);
         constexpr Matrix(const T (& list)[N * M]);
 
+        template <typename... U, typename = std::enable_if_t<sizeof...(U) == (N * M)>>
+        constexpr Matrix(const U& ... values);
+
         // Addition assignment
         constexpr Matrix<N, M, T>& operator+=(const Matrix<N, M, T>& other);
         constexpr Matrix<N, M, T>& operator-=(const Matrix<N, M, T>& other);
@@ -79,7 +82,7 @@ namespace sgl
 
     template <size_t N, size_t M, typename T>
     constexpr Vector<M, T> operator*(const Matrix<N, M, T>& m, const Vector<M, T>& v);
-
+    
 }
 
 #include "matrix_internal.inl"
