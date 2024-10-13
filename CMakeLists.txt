@@ -16,7 +16,7 @@ find_package(OpenGL)
 
 # Set general compiler flags.
 if (WIN32)
-  add_definitions(-D__WINDOWS__ -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -w7)
+  add_definitions(-D__WINDOWS__ -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
 endif (WIN32)
 
 if (APPLE)
