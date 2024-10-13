@@ -3,16 +3,15 @@
     "configurePresets": [
         {
             "name": "default-ninja",
-            "displayName": "Default Ninja MC",
+            "displayName": "Default Ninja",
             "description": "Sets Ninja generator, build and install directory",
             "generator": "Ninja Multi-Config",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin",
-                "CMAKE_CXX_COMPILER" : "cl.exe",
-                "CMAKE_C_COMPILER" : "cl.exe",
                 "CMAKE_EXPORT_COMPILE_COMMANDS" : "1"
-            }
+            },
+            "hidden": true
         },
         {
             "name": "ninja-macos",
@@ -20,11 +19,24 @@
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
-                "rhs": "macOS"
+                "rhs": "Darwin"
             },
             "cacheVariables": {
                 "CMAKE_CXX_COMPILER" : "clang++",
                 "CMAKE_C_COMPILER" : "clang"
+            }
+        },
+        {
+            "name": "ninja-win",
+            "inherits": "default-ninja",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER" : "cl.exe",
+                "CMAKE_C_COMPILER" : "cl.exe"
             }
         }
     ]
