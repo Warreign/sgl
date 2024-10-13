@@ -18,10 +18,10 @@ public:
     Context() = delete;
     Context(Context& /* other */) = delete;
 
-    explicit Context(int width, int height);
+    explicit Context(int width, int height, int id);
 
     void clearColor();
-    float* colorBufferData() const;
+    float* colorBufferData();
 
     void applyToTransform(mat4& matrix);
 

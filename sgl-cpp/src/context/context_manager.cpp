@@ -9,6 +9,8 @@
 
 namespace sgl
 {
+    ContextManager ContextManager::_instance = ContextManager();
+
     uint8_t ContextManager::currentError = 0;
 
     Shared<Context> ContextManager::active = nullptr;
@@ -27,15 +29,16 @@ namespace sgl
         int id = freeIdx;
         try 
         {
-            Shared<Context> newContext = std::make_shared<Context>(width, height);
+            Shared<Context> newContext = std::make_shared<Context>(width, height, id);
             manager.m_contexts[id] = newContext;
         }
         catch (const std::bad_alloc& e)
         {
+            std::cout << "ERROR: " << e.what() << std::endl;
             currentError = SGL_OUT_OF_MEMORY;
         }
 
-        freeIdx = std::distance(manager.m_contexts.begin(), std::find_if(manager.m_contexts.begin(), manager.m_contexts.end(), [](const Shared<Context> c) { return c == nullptr; }));
+        freeIdx = static_cast<int>(std::distance(manager.m_contexts.begin(), std::find_if(manager.m_contexts.begin(), manager.m_contexts.end(), [](const Shared<Context> c) { return c == nullptr; })));
 
         return id;
     }
