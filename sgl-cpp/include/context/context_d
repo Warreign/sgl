@@ -1,0 +1,61 @@
+#include <iostream>
+#include <array>
+#include <vector>
+#include <string>
+
+class Context {
+public:
+    int width;
+    int height;
+    std::string name;
+    std::string backgroundColor;
+
+    Context(int w, int h, std::string n, std::string bg)
+        : width(w), height(h), name(n), backgroundColor(bg) {}
+
+    void initContext() {
+        std::cout << "Initializing context: " << name
+                  << " with dimensions: " << width << "x" << height
+                  << " and background color: " << backgroundColor << std::endl;
+    }
+
+    void clear() {
+        std::cout << "Clearing context with color: " << backgroundColor << std::endl;
+    }
+};
+
+class ColorBuffer {
+public:
+    int width;
+    int height;
+    std::vector<std::vector<std::array<int, 4>>> buffer; 
+
+    ColorBuffer(int w, int h) : width(w), height(h) {
+        buffer.resize(height, std::vector<std::array<int, 4>>(width, {0, 0, 0, 255}));
+    }
+
+    //change color of a pixel
+    void setPixel(int x, int y, int r, int g, int b, int a = 255) {
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+            buffer[y][x] = {r, g, b, a};
+        }
+    }
+
+    //get color de un pixel
+    std::array<int, 4> getPixel(int x, int y) {
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+            return buffer[y][x];
+        }
+        return {0, 0, 0, 255};
+    }
+
+    //limpiar buffer
+    void clearBuffer(int r, int g, int b, int a = 255) {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                buffer[y][x] = {r, g, b, a};
+            }
+        }
+    }
+};
+
