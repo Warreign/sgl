@@ -24,14 +24,18 @@ namespace sgl
         return &(m_colorBuffer[0][0]);
     }
 
-    int Context::getId() const
+    void Context::setCurrentMat(const mat4& matrix)
     {
-        return m_id;
+        if (m_isDrawing)
+        {
+            return;
+        }
+        m_matCurrent = matrix;
     }
 
-    bool Context::isDrawing() const
+    void Context::applyToCurrentMat(const mat4& matrix)
     {
-        return m_isDrawing;
+        m_matCurrent *= matrix;
     }
 
 } // namespace sgl

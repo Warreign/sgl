@@ -1,5 +1,6 @@
 #include "sgl.h"
 
+#include "context/context.h"
 #include "context/context_manager.h"
 
 #include "math/matrix.h"

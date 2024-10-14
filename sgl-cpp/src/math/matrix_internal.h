@@ -36,7 +36,7 @@ namespace sgl
         // Addition assignment
         constexpr Matrix<N, M, T>& operator+=(const Matrix<N, M, T>& other);
         constexpr Matrix<N, M, T>& operator-=(const Matrix<N, M, T>& other);
-        // constexpr Matrix<N, M, T>& operator*=(const Matrix<M, N, T>& other);
+        constexpr Matrix<N, M, T>& operator*=(const Matrix<M, N, T>& other);
 
         // Access operators
         constexpr column_t& operator[](size_t i);

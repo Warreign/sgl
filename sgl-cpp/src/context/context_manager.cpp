@@ -2,10 +2,9 @@
 
 #include "context/context_manager.h"
 #include "context/context.h"
-#include <iterator>
 #include <memory>
 #include <algorithm>
-#include <new>
+#include <iostream>
 
 namespace sgl
 {
@@ -70,8 +69,9 @@ namespace sgl
             return;
         }
 
-        if (active->isDrawing())
+        if (active && active->isDrawing())
         {
+            currentError = SGL_INVALID_OPERATION;
             return;
         }
 

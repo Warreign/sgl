@@ -23,11 +23,12 @@ public:
     void clearColor();
     float* colorBufferData();
 
-    void applyToTransform(mat4& matrix);
+    void applyToCurrentMat(const mat4& matrix);
+    void setCurrentMat(const mat4& matrix);
 
-    bool isDrawing() const;
+    inline bool isDrawing() const { return m_isDrawing; }
 
-    int getId() const;
+    inline int getId() const { return m_id; };
 
 private:
     const int m_id;

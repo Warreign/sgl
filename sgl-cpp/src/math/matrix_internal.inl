@@ -173,4 +173,11 @@ namespace sgl
         } (), ...);
     }
 
+    template <size_t N, size_t M, typename T>
+    inline constexpr Matrix<N, M, T>& Matrix<N, M, T>::operator*=(const Matrix<M, N, T>& other)
+    {
+        *this = other * *this;
+        return *this;
+    }
+
 }
