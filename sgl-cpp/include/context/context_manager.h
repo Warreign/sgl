@@ -12,24 +12,30 @@ namespace sgl
     public:
         static inline const uint8_t MAX_CONTEXT_COUNT = 32;
 
-        static int createContext(int width, int height);
-        static void destroyContext(int id);
+        int createContext(int width, int height);
+        void destroyContext(int id);
 
-        static void setActive(int id);
+        void setActive(int id);
+        Unique<Context> getActive();
+        int getActiveId();
 
-        static int getActiveId();
+        uint8_t getError();
+        void setError(uint8_t errorCode);
+        const std::string& getErrorString(uint8_t errorCode);
 
-        static Shared<Context> active;
-
-        static uint8_t currentError;
-
-    private:
+        ContextManager();
 
         static ContextManager& getInstance();
-        static ContextManager _instance;
+        
+    private:
 
-        int m_firstFreeIdx = 0;
+        static ContextManager s_instance;
 
-        std::array<Shared<Context>,MAX_CONTEXT_COUNT> m_contexts;
+        Context& getActiveContext(); 
+
+        uint8_t m_currentError;
+        int m_firstFreeIdx;
+        int m_activeContextId;
+        std::array<Context, MAX_CONTEXT_COUNT> m_contexts;
     };
 }

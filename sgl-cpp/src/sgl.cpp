@@ -10,6 +10,8 @@
 #include <cassert>
 #include <iostream>
 
+sgl::ContextManager sgl::ContextManager::s_instance;
+
 void sglInit(void)
 {
     std::cout << "Hello SGL!" << std::endl;
@@ -17,7 +19,7 @@ void sglInit(void)
 
 sglEErrorCode sglGetError(void)
 {
-    return static_cast<sglEErrorCode>(sgl::ContextManager::currentError);
+    return static_cast<sglEErrorCode>(sgl::ContextManager::getInstance().getError());
 }
 
 const char *sglGetErrorString(sglEErrorCode error)
@@ -31,27 +33,27 @@ void sglFinish(void)
 
 int sglCreateContext(int width, int height)
 {
-    return sgl::ContextManager::createContext(width, height);
+    return sgl::ContextManager::getInstance().createContext(width, height);
 }
 
 void sglDestroyContext(int id)
 {
-    sgl::ContextManager::destroyContext(id);
+    sgl::ContextManager::getInstance().destroyContext(id);
 }
 
 void sglSetContext(int id)
 {
-    sgl::ContextManager::setActive(id);
+    sgl::ContextManager::getInstance().setActive(id);
 }
 
 int sglGetContext(void)
 {
-    return sgl::ContextManager::getActiveId();
+    return sgl::ContextManager::getInstance().getActiveId();
 }
 
 float *sglGetColorBufferPointer(void)
 {
-    Shared<sgl::Context> context = sgl::ContextManager::active;
+    Unique<sgl::Context> context = sgl::ContextManager::getInstance().getActive();
     if (!context) { return nullptr; }
     return context->colorBufferData();
 }
