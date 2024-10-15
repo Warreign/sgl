@@ -24,7 +24,7 @@ if (APPLE)
 endif (APPLE)
 
 # Do not use GUI by default.
-add_definitions(-DUSE_GUI=0)
+add_definitions(-DUSE_GUI=1)
 
 set(HDR
   hdrloader.h
