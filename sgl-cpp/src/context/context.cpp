@@ -2,6 +2,7 @@
 #include "context/context_manager.h"
 #include "sgl.h"
 
+#include <iostream>
 #include <cassert>
 #include <memory>
 
@@ -35,13 +36,7 @@ namespace sgl
         m_projectionStack.push_back(mat4::identity);
         m_isInitialized = true;
 
-        for (int i = height/2; i < height; ++i)
-        {
-            for (int j = width/2; j < width; ++j)
-            {
-                putPixel(j, i, sgl::vec3(0.5, 0.2, 0.2));
-            }
-        }
+        std::cout << "Initializing context with dimensions: " << width << "x" << height << std::endl;
     }
 
     float* Context::colorBufferData()
