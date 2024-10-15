@@ -33,6 +33,8 @@ namespace sgl
         template <typename... U, typename = std::enable_if_t<sizeof...(U) == (N * M)>>
         constexpr Matrix(const U& ... values);
 
+        constexpr Matrix(const T* ptr);
+
         // Addition assignment
         constexpr Matrix<N, M, T>& operator+=(const Matrix<N, M, T>& other);
         constexpr Matrix<N, M, T>& operator-=(const Matrix<N, M, T>& other);

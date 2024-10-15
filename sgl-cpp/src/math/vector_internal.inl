@@ -258,10 +258,10 @@ namespace
     inline std::string Vector<N, T>::toString(char start, char end) const
     {
         std::stringstream ss;
-        ss << start << this->m_data[0];
+        ss << start << std::setw(3) << this->m_data[0] << std::setw(0);
         for (int i = 1; i < N; ++i)
         {
-            ss << ", " << this->m_data[i];
+            ss << ", " << std::setw(3) << this->m_data[i] << std::setw(0);
         }
         ss << end;
         return ss.str();

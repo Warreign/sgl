@@ -180,4 +180,16 @@ namespace sgl
         return *this;
     }
 
+    template <size_t N, size_t M, typename T>
+    inline constexpr Matrix<N, M, T>::Matrix(const T* ptr)
+    {
+        for (int n = 0; n < N; ++n)
+        {
+            for (int m = 0; m < M; ++m)
+            {
+                m_data[n][m] = ptr[n * M + m];
+            }
+        }
+    }
+
 }

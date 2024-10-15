@@ -65,5 +65,10 @@ int main()
 
     std::cout << sgl::translate(4, 5, 6) << std::endl;
 
+    float arr[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    sgl::mat4 ptrm(static_cast<float*>(arr));
+
+    std::cout << ptrm << std::endl;
+
     return 0;
 }
