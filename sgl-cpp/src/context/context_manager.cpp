@@ -60,26 +60,28 @@ namespace sgl
         m_activeContextId = id;
     }
 
-    Unique<Context> ContextManager::getActive()
+    Context* ContextManager::getActive()
     {
-        auto& i = getInstance();
-        if (i.m_activeContextId < 0)
+        if (!isActiveValid())
         {
             return nullptr;
         }
-        return std::unique_ptr<Context>(&i.getActiveContext());
+        return &m_contexts[m_activeContextId];
     }
 
-    int ContextManager::getActiveId()
+    bool ContextManager::isActiveValid() const
     {
-        auto& i = getInstance();
-        // if (!active)
-        // {
-        //     s_currentError = SGL_INVALID_OPERATION;
-        //     return -1;
-        // }
-        // return active->getId();
-        return 0;
+        return isContextValid(m_activeContextId);
+    }
+
+    int ContextManager::getActiveId() const 
+    {
+        return m_activeContextId;
+    }
+
+    bool ContextManager::isContextValid(int id) const
+    {        
+        return id >= 0 && id < MAX_CONTEXT_COUNT && m_contexts[id].isInitialized();
     }
 
     uint8_t ContextManager::getError()
@@ -92,6 +94,11 @@ namespace sgl
     void ContextManager::setError(uint8_t errorCode)
     {
         
+    }
+
+    const char* ContextManager::getErrorString(uint8_t errorCode) const
+    {
+        return "";
     }
 
     ContextManager::ContextManager()

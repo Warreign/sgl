@@ -4,6 +4,7 @@
 #include "context/context_manager.h"
 
 #include "math/matrix.h"
+#include "math/transform.h"
 #include "math/utils.h"
 
 #include <stack>
@@ -24,7 +25,7 @@ sglEErrorCode sglGetError(void)
 
 const char *sglGetErrorString(sglEErrorCode error)
 {
-    return nullptr;
+    return sgl::ContextManager::getInstance().getErrorString(error);
 }
 
 void sglFinish(void)
@@ -53,9 +54,8 @@ int sglGetContext(void)
 
 float *sglGetColorBufferPointer(void)
 {
-    Unique<sgl::Context> context = sgl::ContextManager::getInstance().getActive();
-    if (!context) { return nullptr; }
-    return context->colorBufferData();
+    sgl::Context* context = sgl::ContextManager::getInstance().getActive();
+    return context ? context->colorBufferData() : nullptr;
 }
 
 void sglClear(unsigned what)
@@ -96,34 +96,127 @@ void sglArc(float x, float y, float z, float radius, float from, float to)
 
 void sglMatrixMode(sglEMatrixMode mode)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    switch (mode)
+    {
+        case SGL_MODELVIEW:
+        case SGL_PROJECTION:
+            context->setMatrixMode(mode);
+            break;
+        default:
+            m.setError(SGL_INVALID_ENUM);
+    }
 }
 
 void sglPushMatrix(void)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    auto& stack = context->getCurrentStack();    
+    if (stack.size() == 100)
+    {
+        m.setError(SGL_STACK_OVERFLOW);
+        return;
+    }
+    stack.push_back(stack.back());
 }
 
 void sglPopMatrix(void)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    auto& stack = context->getCurrentStack();    
+    if (stack.size() == 1)
+    {
+        m.setError(SGL_STACK_UNDERFLOW);
+        return;
+    }
+    stack.pop_back();
 }
 
 void sglLoadIdentity(void)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    sgl::mat4& current = context->getCurrentMat();
+    current = sgl::mat4::identity;
 }
 
 void sglLoadMatrix(const float *matrix)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    sgl::mat4& current = context->getCurrentMat();
+    sgl::mat4 newMatrix(matrix);
+    current = newMatrix;
 }
 
 void sglMultMatrix(const float *matrix)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    sgl::mat4& current = context->getCurrentMat();
+    sgl::mat4 sglMatrix(matrix);
+    current *= sglMatrix;
 }
 
 void sglTranslate(float x, float y, float z)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    sgl::mat4& current = context->getCurrentMat();
+    sgl::mat4 translation = sgl::translate(x, y, z);
+    current *= translation;
 }
 
 void sglScale(float scalex, float scaley, float scalez)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    sgl::mat4& current = context->getCurrentMat();
+    sgl::mat4 scale = sgl::scale(scalex, scaley, scalez);
+    current *= scale;
 }
 
 void sglRotate2D(float angle, float centerx, float centery)

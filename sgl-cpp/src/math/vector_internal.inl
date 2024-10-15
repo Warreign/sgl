@@ -1,6 +1,7 @@
 #include <cassert>
 #include <algorithm>
 #include <sstream>
+#include <iomanip>
 
 namespace sgl 
 {

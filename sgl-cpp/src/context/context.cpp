@@ -16,41 +16,10 @@ namespace sgl
     {
     }
 
-    // Context::Context(Context&& other)
-    //     : m_id(other.m_id),
-    //       m_width(other.m_width),
-    //       m_height(other.m_height),
-    //       m_isDrawing(other.m_isDrawing),
-    //       m_isInitialized(other.m_isInitialized),
-    //       m_isModelActive(other.m_isModelActive),
-    //       m_clearColor(other.m_clearColor),
-    //       m_colorBuffer(std::move(other.m_colorBuffer)),
-    //       m_depthBuffer(std::move(other.m_depthBuffer)),
-    //       m_modelStack(std::move(other.m_modelStack)),
-    //       m_projectionStack(std::move(other.m_projectionStack))
-    // {
-    // }
-
     Context::~Context()
     {
         m_isInitialized = false;
     }
-
-    // Context& Context::operator=(Context&& other)
-    // {
-    //     m_id = other.m_id;
-    //     m_width = other.m_width;
-    //     m_height = other.m_height;
-    //     m_isDrawing = other.m_isDrawing;
-    //     m_isInitialized = other.m_isInitialized;
-    //     m_isModelActive = other.m_isModelActive;
-    //     m_clearColor = other.m_clearColor;
-    //     m_colorBuffer = std::move(other.m_colorBuffer);
-    //     m_depthBuffer = std::move(other.m_depthBuffer);
-    //     m_modelStack = std::move(other.m_modelStack);
-    //     m_projectionStack = std::move(other.m_projectionStack);
-    //     return *this;
-    // }
 
     Context::Context(int width, int height, int id)
         : m_id(id),
@@ -65,6 +34,14 @@ namespace sgl
         m_modelStack.push_back(mat4::identity);
         m_projectionStack.push_back(mat4::identity);
         m_isInitialized = true;
+
+        for (int i = height/2; i < height; ++i)
+        {
+            for (int j = width/2; j < width; ++j)
+            {
+                putPixel(j, i, sgl::vec3(0.5, 0.2, 0.2));
+            }
+        }
     }
 
     float* Context::colorBufferData()
@@ -73,33 +50,31 @@ namespace sgl
         return &(m_colorBuffer[0][0]);
     }
 
-    void Context::setCurrentMat(const mat4& matrix)
-    {
-        assert(m_isInitialized);
-        mat4& current = getCurrentMat();
-        if (m_isDrawing)
-        {
-            ContextManager::getInstance().setError(SGL_INVALID_OPERATION);
-            return;
-        }
-        current = matrix;
-    }
-
     void Context::setMatrixMode(uint8_t mode)
     {
         assert(m_isInitialized);
         m_isModelActive = mode == SGL_MODELVIEW;
     }
 
-    void Context::applyToCurrentMat(const mat4& matrix)
+    void Context::putPixel(int x, int y, const vec3& color)
     {
-        mat4& current = getCurrentMat();
-        current *= matrix;
+        assert(m_isInitialized && x >= 0 && y >= 0 && x < m_width && y < m_height);
+        m_colorBuffer[point2idx(x, y)] = color;
+    }
+
+    void Context::putPixel(const vec2i& screenPos, const vec3& color)
+    {
+        putPixel(screenPos.x, screenPos.y, color);
     }
 
     int Context::getId() const
     {
         return m_id;
+    }
+
+    int Context::point2idx(int x, int y) const
+    {
+        return y * m_width + x;
     }
 
     bool Context::isDrawing() const
@@ -114,8 +89,14 @@ namespace sgl
 
     mat4& Context::getCurrentMat()
     {
+        auto& stack = getCurrentStack();
+        return stack.front();
+    }
+
+    std::vector<mat4>& Context::getCurrentStack()
+    {
         assert(m_isInitialized && m_modelStack.size() > 0 && m_projectionStack.size() > 0);
-        return m_isModelActive ? m_modelStack.back() : m_projectionStack.back();
+        return m_isModelActive ? m_modelStack : m_projectionStack;
     }
 
 } // namespace sgl

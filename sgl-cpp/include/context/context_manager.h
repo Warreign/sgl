@@ -3,6 +3,7 @@
 #include "utils/common.h"
 #include "context/context.h"
 
+#include <optional>
 #include <array>
 
 namespace sgl 
@@ -16,12 +17,14 @@ namespace sgl
         void destroyContext(int id);
 
         void setActive(int id);
-        Unique<Context> getActive();
-        int getActiveId();
+        Context* getActive();
+        int getActiveId() const;
+        bool isContextValid(int id) const;
+        bool isActiveValid() const;
 
         uint8_t getError();
         void setError(uint8_t errorCode);
-        const std::string& getErrorString(uint8_t errorCode);
+        const char* getErrorString(uint8_t errorCode) const;
 
         ContextManager();
 

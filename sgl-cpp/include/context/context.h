@@ -28,18 +28,22 @@ public:
     void clearColor();
     float* colorBufferData();
 
-
-    void applyToCurrentMat(const mat4& matrix);
-    void setCurrentMat(const mat4& matrix);
+    mat4& getCurrentMat();
+    std::vector<mat4>& getCurrentStack();
     void setMatrixMode(uint8_t mode);
+
+    void putPixel(int x, int y, const vec3& color);
+    void putPixel(const vec2i& screenPos, const vec3& color);
 
     bool isDrawing() const;
     bool isInitialized() const;
 
-    mat4& getCurrentMat();
     int getId() const;
 
 private:
+
+    int point2idx(int x, int y) const;
+
     int m_id;
 
     int m_width;
@@ -54,8 +58,8 @@ private:
     bool m_isModelActive;
 
     // Color buffer
-    vec4 m_clearColor;
-    std::vector<vec4> m_colorBuffer;
+    vec3 m_clearColor;
+    std::vector<vec3> m_colorBuffer;
 
     // Depth buffer
     std::vector<uint8_t> m_depthBuffer;
