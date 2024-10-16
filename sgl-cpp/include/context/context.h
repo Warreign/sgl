@@ -25,7 +25,9 @@ public:
 
     explicit Context(int width, int height, int id);
 
-    void clearColor();
+    
+    void setClearColor(const vec3 color);
+    void clearBuffers(unsigned what);
     float* colorBufferData();
 
     mat4& getCurrentMat();

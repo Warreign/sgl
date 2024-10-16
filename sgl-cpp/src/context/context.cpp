@@ -2,6 +2,7 @@
 #include "context/context_manager.h"
 #include "sgl.h"
 
+#include <cstring>
 #include <iostream>
 #include <cassert>
 #include <memory>
@@ -37,6 +38,23 @@ namespace sgl
         m_isInitialized = true;
 
         std::cout << "Initializing context with dimensions: " << width << "x" << height << std::endl;
+    }
+
+    void Context::setClearColor(const vec3 color)
+    {
+        m_clearColor = color;
+    }
+
+    void Context::clearBuffers(unsigned what)
+    {
+        if (what & SGL_COLOR_BUFFER_BIT)
+        {
+            std::fill(m_colorBuffer.begin(), m_colorBuffer.end(), m_clearColor);
+        }
+        if (what & SGL_DEPTH_BUFFER_BIT)
+        {
+            std::fill(m_depthBuffer.begin(), m_depthBuffer.end(), 0);
+        }
     }
 
     float* Context::colorBufferData()

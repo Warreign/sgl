@@ -241,6 +241,14 @@ void sglViewport(int x, int y, int width, int height)
 
 void sglClearColor(float r, float g, float b, float alpha)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    context->setClearColor(sgl::vec3(r, g, b));
 }
 
 void sglColor3f(float r, float g, float b)
