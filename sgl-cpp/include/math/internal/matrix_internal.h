@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/vector.h"
+#include "vector_internal.h"
 
 #include <array>
 #include <type_traits>

@@ -9,9 +9,6 @@
 namespace sgl
 {
 
-namespace 
-{
-    
     template <size_t N, typename T>
     struct VectorData
     {
@@ -169,7 +166,5 @@ namespace
     constexpr bool operator!=(const Vector<N, T>& v1, const Vector<N, T>& v2);
 
 } // namespace
-
-} // namespace sgl
 
 #include "vector_internal.inl"

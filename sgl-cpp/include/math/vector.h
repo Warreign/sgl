@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/math/vector_internal.h"
+#include "internal/vector_internal.h"
 
 namespace sgl
 {

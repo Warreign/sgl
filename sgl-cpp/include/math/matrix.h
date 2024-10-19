@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/math/matrix_internal.h"
+#include "internal/matrix_internal.h"
 
 namespace sgl 
 {

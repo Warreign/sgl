@@ -6,9 +6,6 @@
 namespace sgl 
 {
 
-namespace 
-{
-
 // Class definitions
     template <size_t N, typename T>
     inline constexpr Vector<N, T>::Vector()
@@ -302,7 +299,5 @@ namespace
         int i = 0;
         ([&]{ this->m_data[i++] = static_cast<T>(values); } (), ...);
     }
-
-}
 
 }
