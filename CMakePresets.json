@@ -37,6 +37,9 @@
             "cacheVariables": {
                 "CMAKE_CXX_COMPILER" : "clang++.exe",
                 "CMAKE_C_COMPILER" : "clang.exe"
+            },
+            "environment": {
+                "PATH": "${sourceDir}/freeglut/bin/x64;$penv{PATH}"
             }
         }
     ]

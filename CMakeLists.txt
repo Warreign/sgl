@@ -95,7 +95,7 @@ endif()
 target_link_libraries(${NAME} sgl ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
 
 # Set output directory.
-set(BIN_DIR ${CMAKE_SOURCE_DIR}/out/bin)
+set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 
 # Properties.
 set_target_properties(${NAME} PROPERTIES

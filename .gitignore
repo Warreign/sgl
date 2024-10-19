@@ -2,6 +2,7 @@
 out/*
 build/*
 install/*
+bin/*
 
 .cache/*
 .clangd
