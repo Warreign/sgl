@@ -2,9 +2,8 @@
 
 #include "context/context_manager.h"
 #include "context/context.h"
-#include <memory>
+
 #include <algorithm>
-#include <iostream>
 
 namespace sgl
 {
