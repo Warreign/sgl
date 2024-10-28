@@ -249,6 +249,13 @@ namespace sgl
         // vec2i c( center);
 
         vec2i c(m_PVM * vec4(center, 0, 1));
+
+        const mat4& mv = m_PVM;
+        auto mv00 = mv[0][0];
+        auto mv10 = mv[1][0];
+        auto mv20 = mv[2][0];
+        float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
+        radius *= scale;
         
         int x, y, p, fourX, fourY;
         x = 0;
@@ -258,33 +265,6 @@ namespace sgl
         fourY = 4*radius;
         while (x <= y)
         {
-            // vec2i p1(x+c.x, y+c.y);
-            // vec2i p2(x+c.x, -y+c.y);
-            // vec2i p3(-x+c.x, y+c.y);
-            // vec2i p4(-x+c.x, -y+c.y);
-            // vec2i p5(y+c.x, x+c.y);
-            // vec2i p6(y+c.x, -x+c.y);
-            // vec2i p7(-y+c.x, x+c.y);
-            // vec2i p8(-y+c.x, -x+c.y);
-
-            // p1 = m_PVM * vec4(p1, 0, 1);
-            // p2 = m_PVM * vec4(p2, 0, 1);
-            // p3 = m_PVM * vec4(p3, 0, 1);
-            // p4 = m_PVM * vec4(p4, 0, 1);
-            // p5 = m_PVM * vec4(p5, 0, 1);
-            // p6 = m_PVM * vec4(p6, 0, 1);
-            // p7 = m_PVM * vec4(p7, 0, 1);
-            // p8 = m_PVM * vec4(p8, 0, 1);
-
-            // putPixel(p1, m_drawColor);
-            // putPixel(p2, m_drawColor);
-            // putPixel(p3, m_drawColor);
-            // putPixel(p4, m_drawColor);
-            // putPixel(p5, m_drawColor);
-            // putPixel(p6, m_drawColor);
-            // putPixel(p7, m_drawColor);
-            // putPixel(p8, m_drawColor);
-
             putPixel(x+c.x, y+c.y, m_drawColor);
             putPixel(x+c.x, -y+c.y, m_drawColor);
             putPixel(-x+c.x, y+c.y, m_drawColor);
