@@ -133,23 +133,8 @@ void sglCircle(float x, float y, float z, float radius)
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
-    std::cout << "Drawing circle" << std::endl;
-    int width = context->getWidth();
-    int height = context->getHeight();
-    sgl::vec2 center(x, y);
-    for (int i = y-radius; i < y+radius; ++i)
-    {
-        for (int j = x-radius; j < x+radius; ++j)
-        {
-            sgl::vec2 screenPos(j, i);
-            float dist = sgl::math::distance(screenPos, center);
-            if (dist > radius-1 && dist < radius)
-            {
-                context->putPixel(j, i, sgl::vec3(0, 1, 0));
-            }
-        }
-    }
 
+    context->drawCircle(sgl::vec2i(x, y), radius);
 }
 
 void sglEllipse(float x, float y, float z, float a, float b)
@@ -360,8 +345,7 @@ void sglViewport(int x, int y, int width, int height)
         m.setError(SGL_INVALID_VALUE);
         return;
     }
-    sgl::mat4& current = context->getCurrentMat();
-    current *= sgl::viewport(x, y, width, height);
+    context->setViewport(x, y, width, height);
 }
 
 void sglClearColor(float r, float g, float b, float alpha)

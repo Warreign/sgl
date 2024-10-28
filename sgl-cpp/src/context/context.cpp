@@ -1,5 +1,6 @@
 #include "context/context.h"
 
+#include "math/transform.h"
 #include "sgl.h"
 
 #include <cmath>
@@ -35,7 +36,9 @@ namespace sgl
           m_pointSize(4),
           m_colorBuffer(width * height, sgl::vec3(0.0, 0.0, 0.0)),
           m_depthBuffer(width * height, 0),
-          m_elementType(SGL_LAST_ELEMENT_TYPE)
+          m_elementType(SGL_LAST_ELEMENT_TYPE),
+          m_viewport(mat4::identity),
+          m_PVM(mat4::identity)
     {
         m_modelStack.push_back(mat4::identity);
         m_projectionStack.push_back(mat4::identity);
@@ -79,33 +82,57 @@ namespace sgl
         m_pointSize = newSize;
     }
 
-    void Context::drawLine(vec2 p1, vec2 p2) 
+    void Context::drawLine(vec2 p1f, vec2 p2f) 
     {
-        int dx = abs(p2.x - p1.x);
-        int dy = abs(p2.y - p1.y);
-        int sx = (p1.x < p2.x) ? 1 : -1;
-        int sy = (p1.y < p2.y) ? 1 : -1;
+        vec2i p1(p1f);
+        vec2i p2(p2f);
+
+        // int c0, c1, p;
+        // c0 = 2 * (p2.y - p1.y);
+        // c1 = c0 - 2 * (p2.x - p1.x);
+        // p = c0 - (p2.x - p1.x);
+
+        // putPixel(p1, m_drawColor);
+        // for (int i = p1.x + 1; i <= p2.x && i < m_width && p1.y < m_height; ++i)
+        // {
+        //     if (p < 0)
+        //     {
+        //         p += c0;
+        //     }
+        //     else 
+        //     {
+        //         p += c1;
+        //         ++p1.y;
+        //         // p1.y += ydiff;
+        //     }
+        //     putPixel(i, p1.y, m_drawColor);
+        // }
+
+        int dx = std::abs(p2.x - p1.x);
+        int dy = std::abs(p2.y - p1.y);
+
+        int slopeX = p1.x < p2.x ? 1 : -1;
+        int slopeY = p1.y < p2.y ? 1 : -1;
 
         int err = dx - dy;
-        while (true) {
-            // Draw point
-            drawPoint(p1.x, p1.y, 0);
 
-            //reached the end of the line?
-            if (p1.x == p2.x && p1.y == p2.y) {
-                break;
-            }
-            // error
+        while (true)
+        {
+            putPixel(p1, m_drawColor);
+            if (p1.x == p2.x && p1.y == p2.y) break;
+
             int e2 = 2 * err;
 
-            if (e2 > -dy) {
+            if (e2 > -dy)
+            {
                 err -= dy;
-                p1.x += sx;
+                p1.x += slopeX;
             }
 
-            if (e2 < dx) {
+            if (e2 < dx)
+            {
                 err += dx;
-                p1.y += sy;
+                p1.y += slopeY;
             }
         }
     }
@@ -114,6 +141,11 @@ namespace sgl
     {
         assert(m_isInitialized);
         m_isModelActive = mode == SGL_MODELVIEW;
+    }
+
+    void Context::setViewport(int x, int y, int width, int height) 
+    {
+        m_viewport = viewport(x, y, width, height);
     }
 
     void Context::enableFeatures(uint32_t features)
@@ -128,7 +160,13 @@ namespace sgl
 
     void Context::putPixel(int x, int y, const vec3& color)
     {
-        assert(m_isInitialized && x >= 0 && y >= 0 && x < m_width && y < m_height);
+        // assert(m_isInitialized && x >= 0 && y >= 0 && x < m_width && y < m_height);
+        assert(m_isInitialized);
+        // if (x >= 0 && y >= 0 && x < m_width && y < m_height)
+        if (x < 0 || y < 0 || x >= m_width || y >= m_height)
+        {
+            return;
+        }
         m_colorBuffer[point2idx(x, y)] = color;
     }
 
@@ -142,12 +180,19 @@ namespace sgl
         m_elementType = elementType;
         m_isDrawing = true;
         m_vertexBuffer.clear();
+        m_PVM = m_viewport * getProjection() * getModelView();
     }
 
     void Context::addVertex(const vec4& vertex) 
     {
         assert(m_isDrawing);
-        m_vertexBuffer.push_back(vertex);
+        m_vertexBuffer.push_back(m_PVM * vertex);
+    }
+
+    void Context::addVertex(const vec4& vertex, const mat4& matrix) 
+    {
+        assert(m_isDrawing);
+        m_vertexBuffer.push_back(matrix * vertex);
     }
 
     void Context::drawBuffer() 
@@ -199,15 +244,77 @@ namespace sgl
         m_vertexBuffer.clear();
     }
 
+    void Context::drawCircle(vec2 center, float radius) 
+    {
+        // vec2i c( center);
+
+        vec2i c(m_PVM * vec4(center, 0, 1));
+        
+        int x, y, p, fourX, fourY;
+        x = 0;
+        y = radius;
+        p = 3 - 2*radius;
+        fourX = 0;
+        fourY = 4*radius;
+        while (x <= y)
+        {
+            // vec2i p1(x+c.x, y+c.y);
+            // vec2i p2(x+c.x, -y+c.y);
+            // vec2i p3(-x+c.x, y+c.y);
+            // vec2i p4(-x+c.x, -y+c.y);
+            // vec2i p5(y+c.x, x+c.y);
+            // vec2i p6(y+c.x, -x+c.y);
+            // vec2i p7(-y+c.x, x+c.y);
+            // vec2i p8(-y+c.x, -x+c.y);
+
+            // p1 = m_PVM * vec4(p1, 0, 1);
+            // p2 = m_PVM * vec4(p2, 0, 1);
+            // p3 = m_PVM * vec4(p3, 0, 1);
+            // p4 = m_PVM * vec4(p4, 0, 1);
+            // p5 = m_PVM * vec4(p5, 0, 1);
+            // p6 = m_PVM * vec4(p6, 0, 1);
+            // p7 = m_PVM * vec4(p7, 0, 1);
+            // p8 = m_PVM * vec4(p8, 0, 1);
+
+            // putPixel(p1, m_drawColor);
+            // putPixel(p2, m_drawColor);
+            // putPixel(p3, m_drawColor);
+            // putPixel(p4, m_drawColor);
+            // putPixel(p5, m_drawColor);
+            // putPixel(p6, m_drawColor);
+            // putPixel(p7, m_drawColor);
+            // putPixel(p8, m_drawColor);
+
+            putPixel(x+c.x, y+c.y, m_drawColor);
+            putPixel(x+c.x, -y+c.y, m_drawColor);
+            putPixel(-x+c.x, y+c.y, m_drawColor);
+            putPixel(-x+c.x, -y+c.y, m_drawColor);
+            putPixel(y+c.x, x+c.y, m_drawColor);
+            putPixel(y+c.x, -x+c.y, m_drawColor);
+            putPixel(-y+c.x, x+c.y, m_drawColor);
+            putPixel(-y+c.x, -x+c.y, m_drawColor);
+            if (p > 0)
+            {
+                p -= fourY + 4;
+                fourY -= 4;
+                --y;
+            }
+            p += fourX + 6;
+            fourX += 4;
+            ++x;
+        }
+    }
+
     void Context::drawPoint(float x, float y, float z) 
     {
         float halfSize = m_pointSize * 0.5;
         for (long yp = std::max(std::lround(y-halfSize), 0L); yp < std::min(std::lround(y+halfSize), static_cast<long>(m_height)); ++yp)
         {
-            for (long xp = std::max(std::lround(x-halfSize), 0L); xp < std::min(std::lround(x+halfSize), static_cast<long>(m_width)); ++xp)
-            {
-                putPixel(x, y, m_drawColor);
-            }
+            long xp = std::max(std::lround(x-halfSize), 0L);
+            long xl = std::min(std::lround(x+halfSize), static_cast<long>(m_width));
+            auto startIt = std::next(m_colorBuffer.begin(), yp*m_width+xp);
+            auto endIt = std::next(m_colorBuffer.begin(), yp*m_width+xl);
+            std::fill(startIt, endIt, m_drawColor);
         }
     }
 
@@ -231,6 +338,16 @@ namespace sgl
         return y * m_width + x;
     }
 
+    const mat4& Context::getModelView() const 
+    {
+        return m_modelStack.back();
+    }
+
+    const mat4& Context::getProjection() const 
+    {
+        return m_projectionStack.back();
+    }
+
     bool Context::isDrawing() const
     {
         return m_isDrawing;
@@ -244,7 +361,7 @@ namespace sgl
     mat4& Context::getCurrentMat()
     {
         auto& stack = getCurrentStack();
-        return stack.front();
+        return stack.back();
     }
 
     std::vector<mat4>& Context::getCurrentStack()

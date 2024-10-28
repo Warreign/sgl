@@ -76,6 +76,9 @@ namespace sgl
 
     constexpr mat4 viewport(int x, int y, int width, int height)
     {
-        return mat4::identity;
+        return mat4(width/2, 0, 0, x+width/2,
+                    0, height/2, 0, y+height/2,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1);
     }
 }

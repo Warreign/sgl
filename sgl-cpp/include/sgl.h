@@ -1,3 +1,8 @@
+// #define TEST0
+// #define TEST_0A
+// #define TEST_0B
+#define TEST_1A
+
 //---------------------------------------------------------------------------
 // sgl.h
 // Header file for SGL (Simple Graphics Library)
