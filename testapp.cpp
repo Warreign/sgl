@@ -9,13 +9,14 @@
 
 /// uncomment the tests you wish to run
 
-//#define TEST0
-//#define TEST1
-//#define TEST2
-//#define TEST3
-//#define TEST4
-//#define TEST5
+// #define TEST0
+// #define TEST1
+// #define TEST2
+// #define TEST3
+// #define TEST4
+// #define TEST5
 
+#include "GL/freeglut_std.h"
 #ifdef TEST0
 #define WIDTH 800
 #define HEIGHT 600
@@ -74,10 +75,10 @@
 #endif
 
 #ifndef WIDTH
-#  define WIDTH 800
+#define WIDTH 800
 #endif
 #ifndef HEIGHT
-#  define HEIGHT 600
+#define HEIGHT 600
 #endif
 
 #define _USE_MATH_DEFINES
@@ -109,26 +110,29 @@ static int _contexts[10];
 float tx = 0, ty = 0, tz = 0, tstep = 0.2;
 float rot = M_PI / 3, rotstep = 0.1;
 
+unsigned int Width = WIDTH, Height = HEIGHT;
+
 unsigned int runMultiplier;
+unsigned int resolutionDivisor;
 
 /// helper class for sgluLookAt
-class Vector3
-{
+class Vector3 {
 public:
   float x, y, z;
   Vector3(float xx, float yy, float zz) : x(xx), y(yy), z(zz) {}
-  inline friend float SqrMagnitude(const Vector3 &v) { return v.x*v.x + v.y*v.y + v.z*v.z; }
-  Vector3 &operator/=(float A)
-  {
-    float a = 1.0f/A;
+  inline friend float SqrMagnitude(const Vector3 &v) {
+    return v.x * v.x + v.y * v.y + v.z * v.z;
+  }
+  Vector3 &operator/=(float A) {
+    float a = 1.0f / A;
     x *= a;
     y *= a;
     z *= a;
     return *this;
   }
-  inline friend Vector3 CrossProd(const Vector3 &A, const Vector3 &B)
-  {
-    return Vector3(A.y*B.z - A.z*B.y, A.z*B.x - A.x*B.z, A.x*B.y - A.y*B.x);
+  inline friend Vector3 CrossProd(const Vector3 &A, const Vector3 &B) {
+    return Vector3(A.y * B.z - A.z * B.y, A.z * B.x - A.x * B.z,
+                   A.x * B.y - A.y * B.x);
   }
 };
 
@@ -136,16 +140,15 @@ typedef unsigned char uint8;
 typedef unsigned int uint;
 
 /// Stores framebuffer as uncompressed .tga image
-void WriteTGA(const char *aFilename)
-{
+void WriteTGA(const char *aFilename) {
   float *data = (float *)sglGetColorBufferPointer();
   if (data == NULL) {
     cerr << "No color buffer data to output into " << aFilename << endl;
     return;
   }
 
-  uint resX = WIDTH;
-  uint resY = HEIGHT;
+  uint resX = Width;
+  uint resY = Height;
   char header[18];
   header[0] = 0;
   header[1] = 0;
@@ -169,7 +172,7 @@ void WriteTGA(const char *aFilename)
   std::ofstream outFile;
   outFile.open(aFilename, std::ios::binary);
   if (!outFile) {
-    //throw std::exception("Could not open required file");
+    // throw std::exception("Could not open required file");
     cerr << "Could not open required file " << aFilename << endl;
   }
 
@@ -190,10 +193,8 @@ void WriteTGA(const char *aFilename)
 }
 
 /// like gluLookAt
-void sgluLookAt(float eyex, float eyey, float eyez,
-                float centerx, float centery, float centerz,
-                float upx, float upy, float upz)
-{
+void sgluLookAt(float eyex, float eyey, float eyez, float centerx,
+                float centery, float centerz, float upx, float upy, float upz) {
   float sqrmag;
 
   /* Make rotation matrix */
@@ -221,24 +222,31 @@ void sgluLookAt(float eyex, float eyey, float eyez,
   if (sqrmag)
     y /= sqrtf(sqrmag);
 
-  float m[] = {
-      x.x, y.x, z.x, 0,                      // col 1
-      x.y, y.y, z.y, 0,                      // col 2
-      x.z, y.z, z.z, 0,                      // col 3
-      -eyex * x.x - eyey * x.y - eyez * x.z, // col 4
-      -eyex * y.x - eyey * y.y - eyez * y.z, // col 4
-      -eyex * z.x - eyey * z.y - eyez * z.z, // col 4
-      1.0};                                  // col 4
+  float m[] = {x.x,
+               y.x,
+               z.x,
+               0, // col 1
+               x.y,
+               y.y,
+               z.y,
+               0, // col 2
+               x.z,
+               y.z,
+               z.z,
+               0,                                     // col 3
+               -eyex * x.x - eyey * x.y - eyez * x.z, // col 4
+               -eyex * y.x - eyey * y.y - eyez * y.z, // col 4
+               -eyex * z.x - eyey * z.y - eyez * z.z, // col 4
+               1.0};                                  // col 4
 
   sglMultMatrix(m);
 }
 
 /// like gluPerspective
-void sgluPerspective(float fovy, float aspect, float zNear, float zFar)
-{
+void sgluPerspective(float fovy, float aspect, float zNear, float zFar) {
   fovy *= (3.1415926535 / 180);
-  float h2 = tan(fovy/2) * zNear;
-  float w2 = h2*aspect;
+  float h2 = tan(fovy / 2) * zNear;
+  float w2 = h2 * aspect;
   sglFrustum(-w2, w2, -h2, h2, zNear, zFar);
 }
 
@@ -247,8 +255,7 @@ void sgluPerspective(float fovy, float aspect, float zNear, float zFar)
 // ==========================================================================
 
 /// render a wireframe 2D box
-void box()
-{
+void box() {
   sglBegin(SGL_LINE_LOOP);
   sglVertex2f(-1, -1);
   sglVertex2f(-1, 1);
@@ -262,8 +269,7 @@ void box()
 }
 
 /// render a 4-sided polygon
-void poly4(int idx[4], float p[][3])
-{
+void poly4(int idx[4], float p[][3]) {
   sglBegin(SGL_POLYGON);
   for (int i = 0; i < 4; i++)
     sglVertex3f(p[idx[i]][0], p[idx[i]][1], p[idx[i]][2]);
@@ -271,25 +277,12 @@ void poly4(int idx[4], float p[][3])
 }
 
 /// render a cube [-1,1]^3
-void cube()
-{
-  float vertices[][3] = {
-    {0, 0, 0},
-    {1, 1, 1},
-    {1, 1, -1},
-    {1, -1, 1},
-    {1, -1, -1},
-    {-1, 1, 1},
-    {-1, 1, -1},
-    {-1, -1, 1},
-      {-1, -1, -1}};
-  int indices[][4] = {
-    {2, 1, 3, 4},
-    {5, 6, 8, 7},
-    {1, 2, 6, 5},
-    {4, 3, 7, 8},
-    {3, 1, 5, 7},
-    {2, 4, 8, 6}};
+void cube() {
+  float vertices[][3] = {{0, 0, 0},   {1, 1, 1},   {1, 1, -1},
+                         {1, -1, 1},  {1, -1, -1}, {-1, 1, 1},
+                         {-1, 1, -1}, {-1, -1, 1}, {-1, -1, -1}};
+  int indices[][4] = {{2, 1, 3, 4}, {5, 6, 8, 7}, {1, 2, 6, 5},
+                      {4, 3, 7, 8}, {3, 1, 5, 7}, {2, 4, 8, 6}};
 
   sglColor3f(0, 0, 1);
   poly4(indices[0], vertices);
@@ -306,8 +299,7 @@ void cube()
 }
 
 /// render cube at (x,y,z) rotate by 'rot' radians
-void placeCube(float x, float y, float z)
-{
+void placeCube(float x, float y, float z) {
   sglPushMatrix();
   sglTranslate(x, y, z);
   sglRotateY(rot);
@@ -317,9 +309,9 @@ void placeCube(float x, float y, float z)
 
 /// Drawing simple primitives, while assuming incomplete
 /// transformation chain (no modeling, projection and window transformations)
-/// Warning: will not run properly once the viewport transformation is implemented!!
-void DrawTestScene0A(void)
-{
+/// Warning: will not run properly once the viewport transformation is
+/// implemented!!
+void DrawTestScene0A(void) {
   sglViewport(-1, -1, 2, 2);
   sglDisable(SGL_DEPTH_TEST);
   sglMatrixMode(SGL_PROJECTION);
@@ -328,32 +320,34 @@ void DrawTestScene0A(void)
   sglLoadIdentity();
 
   float centerX = 0, centerY = 0;
-  //float centerX=0, centerY=0;
+  // float centerX=0, centerY=0;
 
   int numSegments = 32;
-  float angleStep = 0.5*M_PI / (float)numSegments;
+  float angleStep = 0.5 * M_PI / (float)numSegments;
 
   int numCircles = 64;
-  float radiusStep = HEIGHT / numCircles;
-  //float radiusStep = .5f/numCircles;
+  float radiusStep = Height / numCircles;
+  // float radiusStep = 10 * Height / numCircles;
+  // float radiusStep = .5f/numCircles;
   float r = radiusStep;
+  // sglColor3f(1, 0, 0);
+  // sglPointSize(1);
   for (int j = 0; j < numCircles; j++, r += radiusStep) {
     // point test
     sglColor3f(j / (float)numCircles, j / (float)numCircles, j / (float)numCircles);
     sglPointSize(1);
-    sglBegin(SGL_POINTS);
+    sglBegin(SGL_LINE_STRIP);
     {
       for (int i = 0; i < numSegments; i++) {
         float angle = angleStep * (float)i;
-        sglVertex2f(centerX + r*cosf(angle), centerY + r*sinf(angle));
+        sglVertex2f(centerX + r * cosf(angle), centerY + r * sinf(angle));
       }
     }
     sglEnd();
   }
 }
 
-void DrawTestScene0B(void)
-{
+void DrawTestScene0B(void) {
   sglViewport(-1, -1, 2, 2);
   sglDisable(SGL_DEPTH_TEST);
   sglMatrixMode(SGL_PROJECTION);
@@ -364,33 +358,35 @@ void DrawTestScene0B(void)
   float centerX = 0, centerY = 0;
   //  float centerX=0, centerY=0;
   int numSegments = 64;
-  float angleStep = 0.25f*M_PI / (float)numSegments;
-  float r = HEIGHT;
-  //float r=0.5f;
-  // line test
+  float angleStep = 0.25f * M_PI / (float)numSegments;
+  float r = Height;
+  // float r=0.5f;
+  //  line test
   sglPointSize(1);
   for (int i = 0; i < numSegments; i++) {
-    sglColor3f(i / (float)numSegments, i / (float)numSegments, i / (float)numSegments);
+    sglColor3f(i / (float)numSegments, i / (float)numSegments,
+               i / (float)numSegments);
     float angle = angleStep * (float)i;
     sglBegin(SGL_LINES);
     sglVertex2f(centerX, centerY);
-    sglVertex2f(centerX + r*cosf(angle), centerY + r*sinf(angle));
+    sglVertex2f(centerX + r * cosf(angle), centerY + r * sinf(angle));
     sglEnd();
   }
 }
 
-/// Drawing of all elements - orthographic tranformation only (scale+translation in 2d)
-void DrawTestScene1A(void)
-{
+/// Drawing of all elements - orthographic tranformation only (scale+translation
+/// in 2d)
+void DrawTestScene1A(void) {
   sglDisable(SGL_DEPTH_TEST);
 
   // set viewport
-  sglViewport(0, 0, WIDTH, HEIGHT);
+  sglViewport(0, 0, Width, Height);
 
   // set the projection matrix
   sglMatrixMode(SGL_PROJECTION);
   sglLoadIdentity();
-  sglOrtho(-10 * WIDTH/HEIGHT, 10 * WIDTH/HEIGHT, -10, 10, -1, 1);
+  sglOrtho(-10 * (float)Width / Height, 10 * (float)Width / Height, -10, 10, -1,
+           1);
 
   // set the modelview matrix
   sglMatrixMode(SGL_MODELVIEW);
@@ -398,20 +394,20 @@ void DrawTestScene1A(void)
 
   float offsetx, offsety = -6;
   int numInitSegments = 8, i;
-  float segment = 2.0*M_PI / (float)numInitSegments;
+  float segment = 2.0 * M_PI / (float)numInitSegments;
 
   float r = 0.2;
   for (unsigned int rcnt = 12; rcnt > 0; rcnt--, r += 0.2) {
     offsetx = -7.25;
 
     // point test
-    sglColor3f(r/3, r/3, r/3);
+    sglColor3f(r / 3, r / 3, r / 3);
     sglPointSize(3);
     sglBegin(SGL_POINTS);
     {
       for (i = 0; i < numInitSegments; i++) {
         float angle = segment * (float)i;
-        sglVertex2f(offsetx + r*cosf(angle), offsety + r*sinf(angle));
+        sglVertex2f(offsetx + r * cosf(angle), offsety + r * sinf(angle));
       }
     }
     sglEnd();
@@ -423,7 +419,7 @@ void DrawTestScene1A(void)
     sglBegin(SGL_LINES);
     for (i = 0; i < numInitSegments; i++) {
       float angle = segment * (float)i;
-      sglVertex2f(offsetx + r*cos(angle), offsety + r*sin(angle));
+      sglVertex2f(offsetx + r * cos(angle), offsety + r * sin(angle));
     }
     sglEnd();
 
@@ -434,7 +430,7 @@ void DrawTestScene1A(void)
     sglBegin(SGL_LINE_STRIP);
     for (i = 0; i < numInitSegments; i++) {
       float angle = segment * (float)i;
-      sglVertex2f(offsetx + r*cos(angle), offsety + r*sin(angle));
+      sglVertex2f(offsetx + r * cos(angle), offsety + r * sin(angle));
     }
     sglEnd();
 
@@ -445,13 +441,13 @@ void DrawTestScene1A(void)
     sglBegin(SGL_LINE_LOOP);
     for (i = 0; i < numInitSegments; i++) {
       float angle = segment * (float)i;
-      sglVertex2f(offsetx + r*cos(angle), offsety + r*sin(angle));
+      sglVertex2f(offsetx + r * cos(angle), offsety + r * sin(angle));
     }
     sglEnd();
 
   } // for r...
 
-  offsety += 2.5*r;
+  offsety += 2.5 * r;
 
   sglAreaMode(SGL_LINE);
 
@@ -460,7 +456,8 @@ void DrawTestScene1A(void)
   // ellipse drawing
   sglColor3f(1, 0, 1);
   for (i = 0; i < numInitSegments; i++) {
-    sglEllipse(0, 0, 0, (i + 1) * 2.5*r / numInitSegments, (numInitSegments - i) * 2.5*r / numInitSegments);
+    sglEllipse(0, 0, 0, (i + 1) * 2.5 * r / numInitSegments,
+               (numInitSegments - i) * 2.5 * r / numInitSegments);
   }
 
   sglColor3f(0, 1, 1);
@@ -473,10 +470,10 @@ void DrawTestScene1A(void)
 
   sglColor3f(1, 1, 0);
 
-  float rr = r/5;
-  for (unsigned int rcnt = 5; rcnt > 0; rcnt--, rr += r/5) {
-    sglCircle(offsetx - 1, offsety, 0, 0.5*rr);
-    sglCircle(offsetx + 3, offsety, 0, 1.5*rr);
+  float rr = r / 5;
+  for (unsigned int rcnt = 5; rcnt > 0; rcnt--, rr += r / 5) {
+    sglCircle(offsetx - 1, offsety, 0, 0.5 * rr);
+    sglCircle(offsetx + 3, offsety, 0, 1.5 * rr);
   }
 
   offsetx = r;
@@ -485,19 +482,18 @@ void DrawTestScene1A(void)
 
   rr = 0.4;
   for (unsigned int rcnt = 9; rcnt > 0; rcnt--, rr += 0.4) {
-    sglArc(offsetx, offsety, 0, rr, 0, M_PI/2);
-    sglArc(offsetx + 4, offsety, 0, rr, M_PI*2/2, M_PI*3/2);
+    sglArc(offsetx, offsety, 0, rr, 0, M_PI / 2);
+    sglArc(offsetx + 4, offsety, 0, rr, M_PI * 2 / 2, M_PI * 3 / 2);
   }
 }
 
 /// Transformation test
-void DrawTestScene1B(void)
-{
+void DrawTestScene1B(void) {
   sglDisable(SGL_DEPTH_TEST);
   sglAreaMode(SGL_LINE);
 
   // set viewport
-  sglViewport(0, 0, WIDTH, HEIGHT);
+  sglViewport(0, 0, Width, Height);
 
   // set the projection matrix
   sglMatrixMode(SGL_PROJECTION);
@@ -527,7 +523,7 @@ void DrawTestScene1B(void)
 
   sglColor3f(1, 0, 0);
   sglTranslate(-3, 0, 0);
-  sglRotate2D(M_PI*1/8, 0, 0);
+  sglRotate2D(M_PI * 1 / 8, 0, 0);
   box();
 
   sglColor3f(0, 0, 1);
@@ -539,7 +535,7 @@ void DrawTestScene1B(void)
   sglColor3f(0, 1, 1);
   sglLoadIdentity();
   sglTranslate(6, 0, 0);
-  sglRotate2D(M_PI*1/8, 0, 0);
+  sglRotate2D(M_PI * 1 / 8, 0, 0);
   sglScale(0.5, 2, 1);
   box();
 
@@ -556,7 +552,7 @@ void DrawTestScene1B(void)
 
   sglColor3f(1, 0, 0);
   sglTranslate(-3, 0, 0);
-  sglRotate2D(M_PI*1/8, 0, 0);
+  sglRotate2D(M_PI * 1 / 8, 0, 0);
   sglArc(0, 0, 0, 1, 0, 4);
 
   sglColor3f(0, 0, 1);
@@ -570,7 +566,7 @@ void DrawTestScene1B(void)
   sglLoadIdentity();
   sglTranslate(0, 4, 0);
   sglTranslate(6, 0, 0);
-  sglRotate2D(M_PI*1/8, 0, 0);
+  sglRotate2D(M_PI * 1 / 8, 0, 0);
   sglScale(0.5, 2, 1);
   sglArc(0, 0, 0, 1, 0, 4);
 
@@ -587,7 +583,7 @@ void DrawTestScene1B(void)
 
   sglColor3f(1, 0, 0);
   sglTranslate(-3, 0, 0);
-  sglRotate2D(M_PI*1/8, 0, 0);
+  sglRotate2D(M_PI * 1 / 8, 0, 0);
   sglEllipse(0, 0, 0, 1.5, 0.7);
 
   sglColor3f(0, 0, 1);
@@ -601,18 +597,17 @@ void DrawTestScene1B(void)
   sglLoadIdentity();
   sglTranslate(0, -4, 0);
   sglTranslate(6, 0, 0);
-  sglRotate2D(M_PI*1/8, 0, 0);
+  sglRotate2D(M_PI * 1 / 8, 0, 0);
   sglScale(0.5, 2, 1);
   sglEllipse(0, 0, 0, 1.5, 0.7);
 }
 
 /// render a branch of a tree
-void branch(int depth, float rot)
-{
+void branch(int depth, float rot) {
   sglPushMatrix();
   for (int i = 0; i < 3; i++) {
     sglScale(0.87, 0.87, 1);
-    sglRotate2D(rot*0.15, 0, 1);
+    sglRotate2D(rot * 0.15, 0, 1);
     sglTranslate(0, 2, 0);
     box();
   }
@@ -625,12 +620,11 @@ void branch(int depth, float rot)
 }
 
 /// Matrix stack test
-void DrawTestScene1C(void)
-{
+void DrawTestScene1C(void) {
   sglDisable(SGL_DEPTH_TEST);
 
   // set viewport
-  sglViewport(0, 0, WIDTH, HEIGHT);
+  sglViewport(0, 0, Width, Height);
 
   // set the projection matrix
   sglMatrixMode(SGL_PROJECTION);
@@ -656,8 +650,7 @@ void DrawTestScene1C(void)
 }
 
 /// render a non-convex polygon
-void butterfly()
-{
+void butterfly() {
   sglBegin(SGL_POLYGON);
   sglVertex2f(-2, -2);
   sglVertex2f(0, 1);
@@ -669,35 +662,33 @@ void butterfly()
 }
 
 /// render a bunch of colorful ellipses
-void ellipses(float r, float R, float G, float B)
-{
+void ellipses(float r, float R, float G, float B) {
   int numInitSegments = 10;
   for (int i = 0; i < numInitSegments; i++) {
     float c = float(i) / numInitSegments;
-    sglColor3f(c*R, c*G, c*B);
-    sglEllipse(0, 0, 0, r * float(i + 1) / numInitSegments, r * float(numInitSegments - i) / numInitSegments);
+    sglColor3f(c * R, c * G, c * B);
+    sglEllipse(0, 0, 0, r * float(i + 1) / numInitSegments,
+               r * float(numInitSegments - i) / numInitSegments);
   }
 }
 
 /// render a bunch of colorful arcs
-void arcs(float initr, unsigned int rcnt, float R, float G, float B)
-{
+void arcs(float initr, unsigned int rcnt, float R, float G, float B) {
   for (float r = initr; rcnt > 0 && r > 0.0; rcnt--, r -= 0.2) {
     float c = r / initr;
-    sglColor3f(c*R, c*G, c*B);
+    sglColor3f(c * R, c * G, c * B);
     float seg = 0;
-    for (unsigned int segcnt = 0; segcnt < 8; segcnt++, seg += M_PI*2/8)
-      sglArc(0, 0, 0, r, seg, seg + M_PI*2/16);
+    for (unsigned int segcnt = 0; segcnt < 8; segcnt++, seg += M_PI * 2 / 8)
+      sglArc(0, 0, 0, r, seg, seg + M_PI * 2 / 16);
   }
 }
 
 /// Polygon fill test
-void DrawTestScene2A(void)
-{
+void DrawTestScene2A(void) {
   sglDisable(SGL_DEPTH_TEST);
 
   // set viewport
-  sglViewport(0, 0, WIDTH, HEIGHT);
+  sglViewport(0, 0, Width, Height);
 
   // set the projection matrix
   sglMatrixMode(SGL_PROJECTION);
@@ -736,12 +727,11 @@ void DrawTestScene2A(void)
 }
 
 /// Element filling test
-void DrawTestScene2B()
-{
+void DrawTestScene2B() {
   sglDisable(SGL_DEPTH_TEST);
 
   // set viewport
-  sglViewport(0, 0, WIDTH, HEIGHT);
+  sglViewport(0, 0, Width, Height);
 
   // set the projection matrix
   sglMatrixMode(SGL_PROJECTION);
@@ -778,7 +768,7 @@ void DrawTestScene2B()
   sglAreaMode(SGL_LINE);
   ellipses(1.4, 0, 1, 1);
   sglTranslate(0, -3, 0);
-  sglRotate2D(M_PI*0.25, 0, 0);
+  sglRotate2D(M_PI * 0.25, 0, 0);
   sglAreaMode(SGL_FILL);
   ellipses(1.4, 1, 1, 0);
   sglAreaMode(SGL_LINE);
@@ -794,15 +784,14 @@ void DrawTestScene2B()
 }
 
 /// 3D cube drawing test
-void DrawTestScene2C(void)
-{
+void DrawTestScene2C(void) {
   // set viewport
-  sglViewport(0, 0, WIDTH, HEIGHT);
+  sglViewport(0, 0, Width, Height);
 
   // set the projection matrix
   sglMatrixMode(SGL_PROJECTION);
   sglLoadIdentity();
-  sgluPerspective(45, (float)WIDTH/HEIGHT, 0.1, 10.0);
+  sgluPerspective(45, (float)Width / Height, 0.1, 10.0);
 
   // set the modelview matrix
   sglMatrixMode(SGL_MODELVIEW);
@@ -826,31 +815,23 @@ void DrawTestScene2C(void)
 }
 
 /// NFF drawing test
-void DrawTestScene2D(NFFStore &nffstore)
-{
+void DrawTestScene2D(NFFStore &nffstore) {
   sglAreaMode(SGL_FILL);
   sglEnable(SGL_DEPTH_TEST);
   // set viewport
-  sglViewport(0, 0, WIDTH, HEIGHT);
+  sglViewport(0, 0, Width, Height);
 
   // projection transformation
   sglMatrixMode(SGL_PROJECTION);
   sglLoadIdentity();
-  sgluPerspective(nffstore.angle, (float)WIDTH/HEIGHT, 1.0, 1800.0);
+  sgluPerspective(nffstore.angle, (float)Width / Height, 1.0, 1800.0);
 
   // modelview transformation
   sglMatrixMode(SGL_MODELVIEW);
   sglLoadIdentity();
-  sgluLookAt(
-    nffstore.from.x,
-    nffstore.from.y,
-    nffstore.from.z,
-    nffstore.at.x,
-    nffstore.at.y,
-    nffstore.at.z,
-    nffstore.up.x,
-    nffstore.up.y,
-    nffstore.up.z);
+  sgluLookAt(nffstore.from.x, nffstore.from.y, nffstore.from.z, nffstore.at.x,
+             nffstore.at.y, nffstore.at.z, nffstore.up.x, nffstore.up.y,
+             nffstore.up.z);
 
   // render the geometry from the NFF file
   NFFStore::TMatGroupList::const_iterator giter = nffstore.matgroups.begin();
@@ -871,8 +852,7 @@ void DrawTestScene2D(NFFStore &nffstore)
 }
 
 /// NFF drawing test
-float RayTraceScene(const char *scenename, unsigned int iter = 1)
-{
+float RayTraceScene(const char *scenename, unsigned int iter = 1) {
   NFFStore nffstore(false);
   Timer timer;
 
@@ -908,14 +888,7 @@ float RayTraceScene(const char *scenename, unsigned int iter = 1)
   NFFStore::TMatGroupList::const_iterator giter = nffstore.matgroups.begin();
   for (; giter != nffstore.matgroups.end(); ++giter) {
     const NFFStore::Material &m = giter->material;
-    sglMaterial(m.col.r,
-                m.col.g,
-                m.col.b,
-                m.kd,
-                m.ks,
-                m.shine,
-                m.T,
-                m.ior);
+    sglMaterial(m.col.r, m.col.g, m.col.b, m.kd, m.ks, m.shine, m.T, m.ior);
 
     /// store all polygons (converted into triangles)
     const NFFStore::TriangleList &tlist = giter->geometry;
@@ -933,33 +906,25 @@ float RayTraceScene(const char *scenename, unsigned int iter = 1)
     NFFStore::SphereList::const_iterator siter = slist.begin();
     for (; siter != slist.end(); ++siter) {
       const NFFStore::Sphere &s = *siter;
-      sglSphere(s.center.x,
-                s.center.y,
-                s.center.z,
-                s.radius);
+      sglSphere(s.center.x, s.center.y, s.center.z, s.radius);
     }
   }
 
   // iterate over all point lights from the NFF file
-  std::list<NFFStore::PointLight>::const_iterator liter = nffstore.pointLights.begin();
+  std::list<NFFStore::PointLight>::const_iterator liter =
+      nffstore.pointLights.begin();
   for (; liter != nffstore.pointLights.end(); ++liter) {
     const NFFStore::PointLight &l = *liter;
-    sglPointLight(l.position.x,
-                  l.position.y,
-                  l.position.z,
-                  l.intensity.r,
-                  l.intensity.g,
-                  l.intensity.b);
+    sglPointLight(l.position.x, l.position.y, l.position.z, l.intensity.r,
+                  l.intensity.g, l.intensity.b);
   }
 
   // iterate over all the geometry from the NFF file
-  NFFStore::TLightGroupList::const_iterator aliter = nffstore.lightgroups.begin();
+  NFFStore::TLightGroupList::const_iterator aliter =
+      nffstore.lightgroups.begin();
   for (; aliter != nffstore.lightgroups.end(); ++aliter) {
-    sglEmissiveMaterial(aliter->intensity.r,
-                        aliter->intensity.g,
-                        aliter->intensity.b,
-                        aliter->atten.x,
-                        aliter->atten.y,
+    sglEmissiveMaterial(aliter->intensity.r, aliter->intensity.g,
+                        aliter->intensity.b, aliter->atten.x, aliter->atten.y,
                         aliter->atten.z);
 
     /// store all polygons (converted into triangles)
@@ -975,8 +940,7 @@ float RayTraceScene(const char *scenename, unsigned int iter = 1)
   }
 
   if (nffstore.envMap.cols) {
-    sglEnvironmentMap(nffstore.envMap.width,
-                      nffstore.envMap.height,
+    sglEnvironmentMap(nffstore.envMap.width, nffstore.envMap.height,
                       nffstore.envMap.cols);
   }
 
@@ -989,27 +953,20 @@ float RayTraceScene(const char *scenename, unsigned int iter = 1)
   sglClear(SGL_COLOR_BUFFER_BIT | SGL_DEPTH_BUFFER_BIT);
 
   // set the viewport transform
-  sglViewport(0, 0, WIDTH, HEIGHT);
+  sglViewport(0, 0, Width, Height);
 
   // setup the camera using appopriate projection transformation
   // note that the resolution stored in the nff file is ignored
   sglMatrixMode(SGL_PROJECTION);
   sglLoadIdentity();
-  sgluPerspective(nffstore.angle, (float)WIDTH/HEIGHT, 1.0, 1800.0);
+  sgluPerspective(nffstore.angle, (float)Width / Height, 1.0, 1800.0);
 
   // modelview transformation
   sglMatrixMode(SGL_MODELVIEW);
   sglLoadIdentity();
-  sgluLookAt(
-    nffstore.from.x,
-    nffstore.from.y,
-    nffstore.from.z,
-    nffstore.at.x,
-    nffstore.at.y,
-    nffstore.at.z,
-    nffstore.up.x,
-    nffstore.up.y,
-    nffstore.up.z);
+  sgluLookAt(nffstore.from.x, nffstore.from.y, nffstore.from.z, nffstore.at.x,
+             nffstore.at.y, nffstore.at.z, nffstore.up.x, nffstore.up.y,
+             nffstore.up.z);
 
   // compute a ray traced image and store it in the color buffer
   for (unsigned int i = 0; i < iter; i++)
@@ -1019,19 +976,17 @@ float RayTraceScene(const char *scenename, unsigned int iter = 1)
 }
 
 /// Init SGL
-void Init(void)
-{
+void Init(void) {
   sglInit();
   for (int i = 0; i < 10; i++)
     _contexts[i] = -1;
   for (int i = 0; i < NUM_CONTEXTS; i++)
-    _contexts[i] = sglCreateContext(WIDTH, HEIGHT);
+    _contexts[i] = sglCreateContext(Width, Height);
   sglSetContext(_contexts[0]);
 }
 
 /// Clean up SGL
-void CleanUp(void)
-{
+void CleanUp(void) {
   /// destroys all created contexts
   sglFinish();
 }
@@ -1040,20 +995,18 @@ void CleanUp(void)
 ////////// GLUT bindings //////////////
 
 /// redraw the main window - copy pixels from the current SGL context
-void myDisplay(void)
-{
+void myDisplay(void) {
   float *cb = sglGetColorBufferPointer();
 
   if (cb)
-    glDrawPixels(WIDTH, HEIGHT, GL_RGB, GL_FLOAT, cb);
+    glDrawPixels(Width, Height, GL_RGB, GL_FLOAT, cb);
 
   // swap buffers (float buffering)
   glutSwapBuffers();
 }
 
 /// called upon window size change
-void myReshape(int width, int height)
-{
+void myReshape(int width, int height) {
   glViewport(0, 0, width, height);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -1063,89 +1016,87 @@ void myReshape(int width, int height)
 }
 
 /// Callback for processing special key input
-void mySpecial(int key, int x, int y)
-{
+void mySpecial(int key, int x, int y) {
   /// rotate and translate cubes in test 2C
   switch (key) {
-    case GLUT_KEY_LEFT:
-      tx -= tstep;
-      break;
-    case GLUT_KEY_UP:
-      ty += tstep;
-      break;
-    case GLUT_KEY_RIGHT:
-      tx += tstep;
-      break;
-    case GLUT_KEY_DOWN:
-      ty -= tstep;
-      break;
-    case GLUT_KEY_PAGE_UP:
-      tz += tstep;
-      break;
-    case GLUT_KEY_PAGE_DOWN:
-      tz -= tstep;
-      break;
-    case 'r':
-      rot += rotstep;
-      break;
+  case GLUT_KEY_LEFT:
+    tx -= tstep;
+    break;
+  case GLUT_KEY_UP:
+    ty += tstep;
+    break;
+  case GLUT_KEY_RIGHT:
+    tx += tstep;
+    break;
+  case GLUT_KEY_DOWN:
+    ty -= tstep;
+    break;
+  case GLUT_KEY_PAGE_UP:
+    tz += tstep;
+    break;
+  case GLUT_KEY_PAGE_DOWN:
+    tz -= tstep;
+    break;
+  case 'r':
+    rot += rotstep;
+    break;
   }
 
   sglSetContext(_contexts[5]);
   sglClearColor(0, 0, 0, 1);
   sglClear(SGL_COLOR_BUFFER_BIT | SGL_DEPTH_BUFFER_BIT);
-  //DrawTestScene2C();
+  // DrawTestScene2C();
 
   glutPostRedisplay();
 }
 
 /// Callback for processing keyboard input
-void myKeyboard(unsigned char key, int x, int y)
-{
+void myKeyboard(unsigned char key, int x, int y) {
   switch (key) {
-    // application finishes upon pressing q
-    case 'r':
-      mySpecial(key, x, y);
-      break;
-    case 'q':
-    case 'Q':
-    case 27:
-      CleanUp();
-      exit(0);
-      break;
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9': {
-      sglSetContext(_contexts[key - '0']);
-      sglEErrorCode err = sglGetError();
-      if (err != SGL_NO_ERROR)
-        cerr << "Failed to switch context: " << sglGetErrorString(err) << endl;
-    }
-      glutPostRedisplay();
-      break;
+  // application finishes upon pressing q
+  case 'r':
+    mySpecial(key, x, y);
+    break;
+  case 'q':
+  case 'Q':
+  case 27:
+    CleanUp();
+    exit(0);
+    break;
+  case '0':
+  case '1':
+  case '2':
+  case '3':
+  case '4':
+  case '5':
+  case '6':
+  case '7':
+  case '8':
+  case '9': {
+    sglSetContext(_contexts[key - '0']);
+    sglEErrorCode err = sglGetError();
+    if (err != SGL_NO_ERROR)
+      cerr << "Failed to switch context: " << sglGetErrorString(err) << endl;
+  }
+    glutPostRedisplay();
+    break;
   }
 }
 
 #endif
 
-int main(int argc, char **argv)
-{
-  std::cout << "Hello test app!" << std::endl;
-
+int main(int argc, char **argv) {
   runMultiplier = (argc > 1 ? atoi(argv[1]) : 1);
+  resolutionDivisor = (argc > 2 ? atoi(argv[2]) : 1);
+  Width /= resolutionDivisor;
+  Height /= resolutionDivisor;
 
 #if USE_GUI
   // Initialize GLUT
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
   glutInitWindowPosition(5, 50);
-  glutInitWindowSize(WIDTH, HEIGHT);
+  glutInitWindowSize(Width, Height);
 
   // Create main window and set callbacks
   glutCreateWindow(TITLE);
@@ -1162,9 +1113,6 @@ int main(int argc, char **argv)
   Timer timer;
   double totalTime = 0;
 
-  ofstream resultsInfo("results/desc.neon");
-  resultsInfo << "res:" << endl;
-
 #ifdef TEST_0A
   {
     cout << "test 0a..." << flush;
@@ -1177,7 +1125,6 @@ int main(int argc, char **argv)
     double time = timer.RealTime();
     totalTime += time;
 
-    resultsInfo << "    test0a.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test0a.tga");
   }
@@ -1195,7 +1142,6 @@ int main(int argc, char **argv)
     double time = timer.RealTime();
     totalTime += time;
 
-    resultsInfo << "    test0b.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test0b.tga");
   }
@@ -1209,13 +1155,13 @@ int main(int argc, char **argv)
     sglSetContext(_contexts[0]);
     sglClearColor(0, 0, 0, 1);
     sglClear(SGL_COLOR_BUFFER_BIT);
-    for (unsigned int i = 0; i < (runMultiplier > 1 ? 1000*runMultiplier : 1); i++)
+    for (unsigned int i = 0; i < (runMultiplier > 1 ? 1000 * runMultiplier : 1);
+         i++)
       DrawTestScene1A();
 
     double time = timer.RealTime();
     totalTime += time;
 
-    resultsInfo << "    test1a.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test1a.tga");
   }
@@ -1229,13 +1175,13 @@ int main(int argc, char **argv)
     sglSetContext(_contexts[1]);
     sglClearColor(0, 0, 0, 1);
     sglClear(SGL_COLOR_BUFFER_BIT);
-    for (unsigned int i = 0; i < (runMultiplier > 1 ? 1000*runMultiplier : 1); i++)
+    for (unsigned int i = 0; i < (runMultiplier > 1 ? 1000 * runMultiplier : 1);
+         i++)
       DrawTestScene1B();
 
     double time = timer.RealTime();
     totalTime += time;
 
-    resultsInfo << "    test1b.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test1b.tga");
   }
@@ -1249,13 +1195,13 @@ int main(int argc, char **argv)
     sglSetContext(_contexts[2]);
     sglClearColor(0, 0, 0, 1);
     sglClear(SGL_COLOR_BUFFER_BIT);
-    for (unsigned int i = 0; i < (runMultiplier > 1 ? 1000*runMultiplier : 1); i++)
+    for (unsigned int i = 0; i < (runMultiplier > 1 ? 1000 * runMultiplier : 1);
+         i++)
       DrawTestScene1C();
 
     double time = timer.RealTime();
     totalTime += time;
 
-    resultsInfo << "    test1c.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test1c.tga");
   }
@@ -1269,13 +1215,13 @@ int main(int argc, char **argv)
     sglSetContext(_contexts[3]);
     sglClearColor(0, 0, 0, 1);
     sglClear(SGL_COLOR_BUFFER_BIT);
-    for (unsigned int i = 0; i < (runMultiplier > 1 ? 150*runMultiplier : 1); i++)
+    for (unsigned int i = 0; i < (runMultiplier > 1 ? 150 * runMultiplier : 1);
+         i++)
       DrawTestScene2A();
 
     double time = timer.RealTime();
     totalTime += time;
 
-    resultsInfo << "    test2a.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test2a.tga");
   }
@@ -1289,13 +1235,13 @@ int main(int argc, char **argv)
     sglSetContext(_contexts[4]);
     sglClearColor(0, 0, 0, 1);
     sglClear(SGL_COLOR_BUFFER_BIT);
-    for (unsigned int i = 0; i < (runMultiplier > 1 ? 15*runMultiplier : 1); i++)
+    for (unsigned int i = 0; i < (runMultiplier > 1 ? 15 * runMultiplier : 1);
+         i++)
       DrawTestScene2B();
 
     double time = timer.RealTime();
     totalTime += time;
 
-    resultsInfo << "    test2b.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test2b.tga");
   }
@@ -1309,13 +1255,13 @@ int main(int argc, char **argv)
     sglSetContext(_contexts[5]);
     sglClearColor(0, 0, 0, 1);
     sglClear(SGL_COLOR_BUFFER_BIT | SGL_DEPTH_BUFFER_BIT);
-    for (unsigned int i = 0; i < (runMultiplier > 1 ? 15*runMultiplier : 1); i++)
+    for (unsigned int i = 0; i < (runMultiplier > 1 ? 15 * runMultiplier : 1);
+         i++)
       DrawTestScene2C();
 
     double time = timer.RealTime();
     totalTime += time;
 
-    resultsInfo << "    test2c.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test2c.tga");
   }
@@ -1351,13 +1297,13 @@ int main(int argc, char **argv)
     sglSetContext(_contexts[0]);
     sglClearColor(0, 0, 0, 1);
     sglClear(SGL_COLOR_BUFFER_BIT | SGL_DEPTH_BUFFER_BIT);
-    for (unsigned int i = 0; i < (runMultiplier > 1 ? 15*runMultiplier : 1); i++)
+    for (unsigned int i = 0; i < (runMultiplier > 1 ? 15 * runMultiplier : 1);
+         i++)
       DrawTestScene2D(nffstore);
 
     double time = timer.RealTime();
     totalTime += time;
 
-    resultsInfo << "    test2d.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test2d.tga");
   }
@@ -1373,7 +1319,6 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile, runMultiplier);
     totalTime += time;
 
-    resultsInfo << "    test3a.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test3a.tga");
   }
@@ -1389,7 +1334,6 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile, runMultiplier);
     totalTime += time;
 
-    resultsInfo << "    test3b.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test3b.tga");
   }
@@ -1405,7 +1349,6 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile, runMultiplier);
     totalTime += time;
 
-    resultsInfo << "    test3c.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test3c.tga");
   }
@@ -1421,7 +1364,6 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile);
     totalTime += time;
 
-    resultsInfo << "    test4a.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test4a.tga");
   }
@@ -1437,7 +1379,6 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile);
     totalTime += time;
 
-    resultsInfo << "    test4b.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test4b.tga");
   }
@@ -1453,7 +1394,6 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile);
     totalTime += time;
 
-    resultsInfo << "    test4c.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test4c.tga");
   }
@@ -1469,7 +1409,6 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile);
     totalTime += time;
 
-    resultsInfo << "    test5a.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test5a.tga");
   }
@@ -1485,7 +1424,6 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile);
     totalTime += time;
 
-    resultsInfo << "    test5b.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test5b.tga");
   }
@@ -1501,7 +1439,6 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile);
     totalTime += time;
 
-    resultsInfo << "    test5c.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test5c.tga");
   }
@@ -1517,13 +1454,11 @@ int main(int argc, char **argv)
     double time = RayTraceScene(sceneFile);
     totalTime += time;
 
-    resultsInfo << "    test5d.png : " << time << endl;
     cout << "done in " << time << " sec." << endl;
     WriteTGA("results/test5d.tga");
   }
 #endif
 
-  resultsInfo << "TotalTime : " << totalTime << endl;
   cout << "TotalTime : " << totalTime << endl;
 
 #if USE_GUI
