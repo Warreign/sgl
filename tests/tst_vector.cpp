@@ -26,5 +26,11 @@ int main()
 
     std::cout << vc22 << std::endl;
 
+    sgl::vec3 vecf(123.123, 234.234, 345.345);
+    std::cout << vecf << std::endl;
+    sgl::vec3i veci(vecf);
+    std::cout << veci << std::endl;
+
+
     return 0;
 }

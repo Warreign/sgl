@@ -43,6 +43,8 @@ int main()
     sgl::vec4 multv = x2m * sgl::vec4(1, 2, 3, 4);
     std::cout << multv << std::endl;
 
+    std::cout << sgl::rotateY(3.14*2) << std::endl;
+
     sgl::vec2 smallv(1, 2);
     std::cout << smallv << std::endl;
 
@@ -63,7 +65,7 @@ int main()
 
     std::cout << varm << std::endl;
 
-    std::cout << sgl::translate(4, 5, 6) << std::endl;
+    // std::cout << sgl::translate(4, 5, 6) << std::endl;
 
     float arr[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
     sgl::mat4 ptrm(static_cast<float*>(arr));
