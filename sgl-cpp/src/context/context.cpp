@@ -208,6 +208,9 @@ namespace sgl
             return;
         }
 
+        auto applyDivisionViewport = [this](const vec4& vertex) { return m_viewport * (vertex / vertex.w); };
+        std::transform(m_vertexBuffer.cbegin(), m_vertexBuffer.cend(), m_vertexBuffer.begin(), applyDivisionViewport);
+
         switch (m_elementType)
         {
             case SGL_POINTS:
@@ -247,11 +250,9 @@ namespace sgl
         m_vertexBuffer.clear();
     }
 
-    void Context::drawCircle(vec2 center, float radius) 
+    void Context::drawCircle(vec3 center, float radius) 
     {
-        // vec2i c( center);
-
-        vec2i c(m_PVM * vec4(center, 0, 1));
+        vec3i c(m_PVM * vec4(center, 1));
 
         const mat4& mv = m_PVM;
         auto mv00 = mv[0][0];
@@ -268,6 +269,7 @@ namespace sgl
         fourY = 4*radius;
         while (x <= y)
         {
+
             putPixel(x+c.x, y+c.y, m_drawColor);
             putPixel(x+c.x, -y+c.y, m_drawColor);
             putPixel(-x+c.x, y+c.y, m_drawColor);
@@ -288,54 +290,77 @@ namespace sgl
         }
     }
 
-    void Context::drawEllipse(vec2 center, float a, float b)
+    void Context::drawCirclePolar(vec3 center, float radius)
     {
         int steps = 40;
         float dtheta = 2 * M_PI / steps;
 
-        vec2i c(m_PVM * vec4(center, 0, 1));
-
-        const mat4& mv = m_PVM;
-        auto mv00 = mv[0][0];
-        auto mv10 = mv[1][0];
-        auto mv20 = mv[2][0];
-        float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
-        a *= scale;
-        b *= scale;
+        vec3i c(center);
 
         beginDrawing(SGL_LINE_LOOP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = i * dtheta;
-            int x = static_cast<int>(std::round(c.x + a * std::cos(theta)));
-            int y = static_cast<int>(std::round(c.y + b * std::sin(theta)));
-            addVertex(vec4(x, y, 0, 1), false);
+            float x = center.x + radius * std::cos(theta);
+            float y = center.y + radius * std::sin(theta);
+            addVertex(vec4(x, y, center.z, 1));
         }
         drawBuffer();
     }
 
-    void Context::drawArc(vec2 center, float radius, float fromRad, float toRad)
+    void Context::drawEllipse(vec3 center, float a, float b)
+    {
+        int steps = 40;
+        float dtheta = 2 * M_PI / steps;
+
+        // vec2i c(m_PVM * vec4(center, 0, 1));
+        vec2i c(center);
+
+        // const mat4& mv = m_PVM;
+        // auto mv00 = mv[0][0];
+        // auto mv10 = mv[1][0];
+        // auto mv20 = mv[2][0];
+        // float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
+        // a *= scale;
+        // b *= scale;
+
+        beginDrawing(SGL_LINE_LOOP);
+        for (int i = 0; i < steps; ++i)
+        {
+            float theta = i * dtheta;
+            // int x = static_cast<int>(std::round(c.x + a * std::cos(theta)));
+            // int y = static_cast<int>(std::round(c.y + b * std::sin(theta)));
+            float x = center.x + a * std::cos(theta);
+            float y = center.y + b * std::sin(theta);
+            addVertex(vec4(x, y, 0, 1));
+        }
+        drawBuffer();
+    }
+
+    void Context::drawArc(vec3 center, float radius, float fromRad, float toRad)
     {    
         int steps = 40;
         float dtheta = (toRad-fromRad) / steps;
 
-        vec2i c(m_PVM * vec4(center, 0, 1));
+        // vec2i c(m_PVM * vec4(center, 0, 1));
 
-        const mat4& mv = m_PVM;
-        auto mv00 = mv[0][0];
-        auto mv10 = mv[1][0];
-        auto mv20 = mv[2][0];
-        float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
+        // const mat4& mv = m_PVM;
+        // auto mv00 = mv[0][0];
+        // auto mv10 = mv[1][0];
+        // auto mv20 = mv[2][0];
+        // float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
 
-        radius *= scale;
+        // radius *= scale;
 
         beginDrawing(SGL_LINE_STRIP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = fromRad + i * dtheta;
-            int x = static_cast<int>(std::round(c.x + radius * std::cos(theta)));
-            int y = static_cast<int>(std::round(c.y + radius * std::sin(theta)));
-            addVertex(vec4(x, y, 0, 1), false);
+            // int x = static_cast<int>(std::round(c.x + radius * std::cos(theta)));
+            // int y = static_cast<int>(std::round(c.y + radius * std::sin(theta)));
+            float x = center.x + radius * std::cos(theta);
+            float y = center.y + radius * std::sin(theta);
+            addVertex(vec4(x, y, 0, 1));
         }
         drawBuffer();
 
@@ -386,7 +411,7 @@ namespace sgl
 
     void Context::updatePVM()
     {
-        m_PVM = m_viewport * getProjection() * getModelView();
+        m_PVM = getProjection() * getModelView();
     }
 
     bool Context::isDrawing() const

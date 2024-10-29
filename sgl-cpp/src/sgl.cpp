@@ -134,7 +134,7 @@ void sglCircle(float x, float y, float z, float radius)
         return;
     }
 
-    context->drawCircle(sgl::vec2i(x, y), radius);
+    context->drawCirclePolar(sgl::vec3(x, y, z), radius);
 }
 
 void sglEllipse(float x, float y, float z, float a, float b)
@@ -147,7 +147,7 @@ void sglEllipse(float x, float y, float z, float a, float b)
         return;
     }
 
-    context->drawEllipse(sgl::vec2(x, y), a, b);
+    context->drawEllipse(sgl::vec3(x, y, z), a, b);
 }
 
 void sglArc(float x, float y, float z, float radius, float from, float to)
@@ -160,7 +160,7 @@ void sglArc(float x, float y, float z, float radius, float from, float to)
         return;
     }
 
-    context->drawArc(sgl::vec2(x,y), radius, from, to);
+    context->drawArc(sgl::vec3(x,y, z), radius, from, to);
 }
 
 void sglMatrixMode(sglEMatrixMode mode)
@@ -271,7 +271,7 @@ void sglTranslate(float x, float y, float z)
     }
     sgl::mat4& current = context->getCurrentMat();
     sgl::mat4 translation = sgl::translate(x, y, z);
-    current *= translation;
+    current = translation * current;
 }
 
 void sglScale(float scalex, float scaley, float scalez)
