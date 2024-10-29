@@ -47,10 +47,14 @@ public:
     void putPixel(const vec2i& screenPos, const vec3& color);
 
     void beginDrawing(uint32_t elementType);
-    void addVertex(const vec4& vertex);
+    void addVertex(const vec4& vertex, bool applyPVM = true);
     void addVertex(const vec4& vertex, const mat4& matrix);
     void drawBuffer();
     void drawCircle(vec2 center, float radius);
+    void drawEllipse(vec2 center, float a, float b);
+    void drawArc(vec2 center, float radius, float fromRad, float toRad);
+
+    void updatePVM();
 
 private:
 
@@ -61,6 +65,7 @@ private:
 
     const mat4& getModelView() const;
     const mat4& getProjection() const;
+
 
     int m_id;
 

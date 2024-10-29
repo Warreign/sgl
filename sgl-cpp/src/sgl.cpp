@@ -139,10 +139,28 @@ void sglCircle(float x, float y, float z, float radius)
 
 void sglEllipse(float x, float y, float z, float a, float b)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+
+    context->drawEllipse(sgl::vec2(x, y), a, b);
 }
 
 void sglArc(float x, float y, float z, float radius, float from, float to)
 {
+    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+
+    context->drawArc(sgl::vec2(x,y), radius, from, to);
 }
 
 void sglMatrixMode(sglEMatrixMode mode)

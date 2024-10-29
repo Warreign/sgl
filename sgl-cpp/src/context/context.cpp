@@ -4,6 +4,7 @@
 #include "sgl.h"
 
 #include <cmath>
+#include <corecrt_math_defines.h>
 #include <iostream>
 #include <cassert>
 
@@ -180,13 +181,15 @@ namespace sgl
         m_elementType = elementType;
         m_isDrawing = true;
         m_vertexBuffer.clear();
-        m_PVM = m_viewport * getProjection() * getModelView();
+        // m_PVM = m_viewport * getProjection() * getModelView();
+        updatePVM();
     }
 
-    void Context::addVertex(const vec4& vertex) 
+    void Context::addVertex(const vec4& vertex, bool applyPVM) 
     {
         assert(m_isDrawing);
-        m_vertexBuffer.push_back(m_PVM * vertex);
+        if (applyPVM) m_vertexBuffer.push_back(m_PVM * vertex);
+        else m_vertexBuffer.push_back(vertex);
     }
 
     void Context::addVertex(const vec4& vertex, const mat4& matrix) 
@@ -285,6 +288,59 @@ namespace sgl
         }
     }
 
+    void Context::drawEllipse(vec2 center, float a, float b)
+    {
+        int steps = 40;
+        float dtheta = 2 * M_PI / steps;
+
+        vec2i c(m_PVM * vec4(center, 0, 1));
+
+        const mat4& mv = m_PVM;
+        auto mv00 = mv[0][0];
+        auto mv10 = mv[1][0];
+        auto mv20 = mv[2][0];
+        float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
+        a *= scale;
+        b *= scale;
+
+        beginDrawing(SGL_LINE_LOOP);
+        for (int i = 0; i < steps; ++i)
+        {
+            float theta = i * dtheta;
+            int x = static_cast<int>(std::round(c.x + a * std::cos(theta)));
+            int y = static_cast<int>(std::round(c.y + b * std::sin(theta)));
+            addVertex(vec4(x, y, 0, 1), false);
+        }
+        drawBuffer();
+    }
+
+    void Context::drawArc(vec2 center, float radius, float fromRad, float toRad)
+    {    
+        int steps = 40;
+        float dtheta = (toRad-fromRad) / steps;
+
+        vec2i c(m_PVM * vec4(center, 0, 1));
+
+        const mat4& mv = m_PVM;
+        auto mv00 = mv[0][0];
+        auto mv10 = mv[1][0];
+        auto mv20 = mv[2][0];
+        float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
+
+        radius *= scale;
+
+        beginDrawing(SGL_LINE_STRIP);
+        for (int i = 0; i < steps; ++i)
+        {
+            float theta = fromRad + i * dtheta;
+            int x = static_cast<int>(std::round(c.x + radius * std::cos(theta)));
+            int y = static_cast<int>(std::round(c.y + radius * std::sin(theta)));
+            addVertex(vec4(x, y, 0, 1), false);
+        }
+        drawBuffer();
+
+    }
+
     void Context::drawPoint(float x, float y, float z) 
     {
         float halfSize = m_pointSize * 0.5;
@@ -326,6 +382,11 @@ namespace sgl
     const mat4& Context::getProjection() const 
     {
         return m_projectionStack.back();
+    }
+
+    void Context::updatePVM()
+    {
+        m_PVM = m_viewport * getProjection() * getModelView();
     }
 
     bool Context::isDrawing() const
