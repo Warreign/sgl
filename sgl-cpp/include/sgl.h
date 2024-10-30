@@ -3,7 +3,7 @@
 // #define TEST_0B
 #define TEST_1A
 #define TEST_1B
-// #define TEST_1C
+#define TEST_1C
 
 //---------------------------------------------------------------------------
 // sgl.h

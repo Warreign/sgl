@@ -42,6 +42,11 @@ namespace sgl
         return ret;
     }
 
+    constexpr mat4 rotateAroundPointZ()
+    {
+        return mat4::identity;
+    }
+
     constexpr mat4 rotateZ(float angle)
     {
         return mat4(std::cos(angle), -std::sin(angle), 0, 0,
@@ -65,10 +70,10 @@ namespace sgl
 
     constexpr mat4 ortho(float left, float right, float bottom, float top, float near, float far) 
     {
-        return mat4(2/(right-left), 0, 0, -(right+left)/(right-left),
-                    0, 2/(top-bottom), 0, -(top+bottom)/(top-bottom),
-                    0, 0, -2/(far-near), -(far+near)/(far-near),
-                    0, 0, 0, 1);
+        return mat4(2/(right-left),     0,                  0,                 -(right+left)/(right-left),
+                    0,                  2/(top-bottom),     0,                 -(top+bottom)/(top-bottom),
+                    0,                  0,                 -2/(far-near),      -(far+near)/(far-near),
+                    0,                  0,                  0,                  1);
     }
 
     constexpr mat4 perspective(float left, float right, float bottom, float top, float near, float far)
@@ -78,9 +83,9 @@ namespace sgl
 
     constexpr mat4 viewport(int x, int y, int width, int height)
     {
-        return mat4(width/2, 0, 0, x+width/2,
-                    0, height/2, 0, y+height/2,
-                    0, 0, 1, 0,
-                    0, 0, 0, 1);
+        return mat4(width/2,    0,          0,          x+width/2,
+                    0,          height/2,   0,          y+height/2,
+                    0,          0,          1,          0,
+                    0,          0,          0,          1);
     }
 }

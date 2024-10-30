@@ -257,7 +257,7 @@ void sglMultMatrix(const float *matrix)
     }
     sgl::mat4& current = context->getCurrentMat();
     sgl::mat4 sglMatrix(matrix);
-    current *= sglMatrix;
+    current = current * sglMatrix;
 }
 
 void sglTranslate(float x, float y, float z)
@@ -284,7 +284,7 @@ void sglScale(float scalex, float scaley, float scalez)
         return;
     }
     sgl::mat4& current = context->getCurrentMat();
-    current *= sgl::scale(scalex, scaley, scalez);;
+    current = current * sgl::scale(scalex, scaley, scalez);;
 }
 
 void sglRotate2D(float angle, float centerx, float centery)
@@ -297,7 +297,7 @@ void sglRotate2D(float angle, float centerx, float centery)
         return;
     }
     sgl::mat4& current = context->getCurrentMat();
-    current = sgl::translate(centerx, centery, 0) * sgl::rotateZ(angle) * sgl::translate(-centerx, -centery, 0) * current;
+    current = current * sgl::translate(centerx, centery, 0) * sgl::rotateZ(angle) * sgl::translate(-centerx, -centery, 0);
 }
 
 void sglRotateY(float angle)
@@ -310,7 +310,7 @@ void sglRotateY(float angle)
         return;
     }
     sgl::mat4& current = context->getCurrentMat();
-    current *= sgl::rotateY(angle);
+    current = current * sgl::rotateY(angle);
 }
 
 void sglOrtho(float left, float right, float bottom, float top, float near, float far)
@@ -328,7 +328,7 @@ void sglOrtho(float left, float right, float bottom, float top, float near, floa
         return;
     }
     sgl::mat4& current = context->getCurrentMat();
-    current *= sgl::ortho(left, right, bottom, top, near, far);
+    current = current * sgl::ortho(left, right, bottom, top, near, far);
 }
 
 void sglFrustum(float left, float right, float bottom, float top, float near, float far)
@@ -346,7 +346,7 @@ void sglFrustum(float left, float right, float bottom, float top, float near, fl
         return;
     }
     sgl::mat4& current = context->getCurrentMat();
-    current *= sgl::perspective(left, right, bottom, top, near, far);
+    current = current * sgl::perspective(left, right, bottom, top, near, far);
 }
 
 void sglViewport(int x, int y, int width, int height)

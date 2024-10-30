@@ -88,27 +88,6 @@ namespace sgl
         vec2i p1(p1f);
         vec2i p2(p2f);
 
-        // int c0, c1, p;
-        // c0 = 2 * (p2.y - p1.y);
-        // c1 = c0 - 2 * (p2.x - p1.x);
-        // p = c0 - (p2.x - p1.x);
-
-        // putPixel(p1, m_drawColor);
-        // for (int i = p1.x + 1; i <= p2.x && i < m_width && p1.y < m_height; ++i)
-        // {
-        //     if (p < 0)
-        //     {
-        //         p += c0;
-        //     }
-        //     else 
-        //     {
-        //         p += c1;
-        //         ++p1.y;
-        //         // p1.y += ydiff;
-        //     }
-        //     putPixel(i, p1.y, m_drawColor);
-        // }
-
         int dx = std::abs(p2.x - p1.x);
         int dy = std::abs(p2.y - p1.y);
 
@@ -117,11 +96,9 @@ namespace sgl
 
         int err = dx - dy;
 
-        while (true)
+        putPixel(p1, m_drawColor);
+        while (p1.x != p2.x || p1.y != p2.y)
         {
-            putPixel(p1, m_drawColor);
-            if (p1.x == p2.x && p1.y == p2.y) break;
-
             int e2 = 2 * err;
 
             if (e2 > -dy)
@@ -135,6 +112,7 @@ namespace sgl
                 err += dx;
                 p1.y += slopeY;
             }
+            putPixel(p1, m_drawColor);
         }
     }
 
@@ -161,9 +139,7 @@ namespace sgl
 
     void Context::putPixel(int x, int y, const vec3& color)
     {
-        // assert(m_isInitialized && x >= 0 && y >= 0 && x < m_width && y < m_height);
         assert(m_isInitialized);
-        // if (x >= 0 && y >= 0 && x < m_width && y < m_height)
         if (x < 0 || y < 0 || x >= m_width || y >= m_height)
         {
             return;
@@ -313,23 +289,12 @@ namespace sgl
         int steps = 40;
         float dtheta = 2 * M_PI / steps;
 
-        // vec2i c(m_PVM * vec4(center, 0, 1));
         vec2i c(center);
-
-        // const mat4& mv = m_PVM;
-        // auto mv00 = mv[0][0];
-        // auto mv10 = mv[1][0];
-        // auto mv20 = mv[2][0];
-        // float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
-        // a *= scale;
-        // b *= scale;
 
         beginDrawing(SGL_LINE_LOOP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = i * dtheta;
-            // int x = static_cast<int>(std::round(c.x + a * std::cos(theta)));
-            // int y = static_cast<int>(std::round(c.y + b * std::sin(theta)));
             float x = center.x + a * std::cos(theta);
             float y = center.y + b * std::sin(theta);
             addVertex(vec4(x, y, 0, 1));
@@ -340,24 +305,24 @@ namespace sgl
     void Context::drawArc(vec3 center, float radius, float fromRad, float toRad)
     {    
         int steps = 40;
+
+        // fromRad = std::fmodf(fromRad, M_2_PI);
+        // toRad = std::fmodf(toRad, M_2_PI);
+
+        // if (fromRad > toRad)
+        // {
+        //     std::swap(fromRad, toRad);
+        // }
+
+        // Make steps proportional to the arc size
+        steps = static_cast<int>( static_cast<float>(steps) * (toRad-fromRad) / M_2_PI );
+
         float dtheta = (toRad-fromRad) / steps;
-
-        // vec2i c(m_PVM * vec4(center, 0, 1));
-
-        // const mat4& mv = m_PVM;
-        // auto mv00 = mv[0][0];
-        // auto mv10 = mv[1][0];
-        // auto mv20 = mv[2][0];
-        // float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
-
-        // radius *= scale;
 
         beginDrawing(SGL_LINE_STRIP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = fromRad + i * dtheta;
-            // int x = static_cast<int>(std::round(c.x + radius * std::cos(theta)));
-            // int y = static_cast<int>(std::round(c.y + radius * std::sin(theta)));
             float x = center.x + radius * std::cos(theta);
             float y = center.y + radius * std::sin(theta);
             addVertex(vec4(x, y, 0, 1));
@@ -369,12 +334,12 @@ namespace sgl
     void Context::drawPoint(float x, float y, float z) 
     {
         float halfSize = m_pointSize * 0.5;
-        for (long yp = std::max(std::lround(y-halfSize), 0L); yp < std::min(std::lround(y+halfSize), static_cast<long>(m_height)); ++yp)
+        for (int yPixel = std::max(static_cast<int>(y-halfSize), 0); yPixel < std::min(static_cast<uint32_t>(y+halfSize), m_height); ++yPixel)
         {
-            long xp = std::max(std::lround(x-halfSize), 0L);
-            long xl = std::min(std::lround(x+halfSize), static_cast<long>(m_width));
-            auto startIt = std::next(m_colorBuffer.begin(), yp*m_width+xp);
-            auto endIt = std::next(m_colorBuffer.begin(), yp*m_width+xl);
+            uint32_t xPixelStart = std::max(static_cast<int>(x-halfSize), 0);
+            uint32_t xPixelEnd = std::min(static_cast<uint32_t>(x+halfSize), m_width);
+            auto startIt = std::next(m_colorBuffer.begin(), point2idx(xPixelStart, yPixel));
+            auto endIt = std::next(m_colorBuffer.begin(), point2idx(xPixelEnd, yPixel));
             std::fill(startIt, endIt, m_drawColor);
         }
     }
