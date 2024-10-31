@@ -1,6 +1,6 @@
-#include "sgl.h"
-
 #include "context/context_manager.h"
+
+#include "sgl.h"
 #include "context/context.h"
 
 #include <algorithm>
@@ -97,7 +97,23 @@ namespace sgl
 
     const char* ContextManager::getErrorString(uint8_t errorCode) const
     {
-        return "";
+        static const char *errStrigTable[] =
+        {
+            "Operation succeeded",
+            "Invalid argument(s) to a call",
+            "Invalid enumeration argument(s) to a call",
+            "Invalid call",
+            "Quota of internal resources exceeded",
+            "Internal library error",
+            "Matrix stack overflow",
+            "Matrix stack underflow",
+            "Insufficient memory to finish the requested operation"
+        };
+
+        if (errorCode < SGL_NO_ERROR || errorCode > SGL_OUT_OF_MEMORY)
+            return "Invalid error code";
+
+        return errStrigTable[errorCode];
     }
 
     ContextManager::ContextManager()
