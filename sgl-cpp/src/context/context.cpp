@@ -64,7 +64,6 @@ namespace sgl
     float* Context::colorBufferData()
     {
         if (m_colorBuffer.size() == 0) return nullptr;
-        // return &(m_colorBuffer[0][0]);
         return reinterpret_cast<float*>(m_colorBuffer.data());
     }
 
@@ -306,15 +305,6 @@ namespace sgl
     {    
         int steps = 40;
 
-        // fromRad = std::fmodf(fromRad, M_2_PI);
-        // toRad = std::fmodf(toRad, M_2_PI);
-
-        // if (fromRad > toRad)
-        // {
-        //     std::swap(fromRad, toRad);
-        // }
-
-        // Make steps proportional to the arc size
         steps = static_cast<int>( static_cast<float>(steps) * (toRad-fromRad) / M_2_PI );
 
         float dtheta = (toRad-fromRad) / steps;
