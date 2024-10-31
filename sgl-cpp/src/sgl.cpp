@@ -217,6 +217,7 @@ void sglPopMatrix(void)
         return;
     }
     stack.pop_back();
+    context->updatePVM();
 }
 
 void sglLoadIdentity(void)
@@ -271,7 +272,7 @@ void sglTranslate(float x, float y, float z)
     }
     sgl::mat4& current = context->getCurrentMat();
     sgl::mat4 translation = sgl::translate(x, y, z);
-    current = translation * current;
+    current = current * translation;
 }
 
 void sglScale(float scalex, float scaley, float scalez)
