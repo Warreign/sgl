@@ -12,7 +12,7 @@
 #include <iostream>
 
 
-sgl::ContextManager sgl::ContextManager::s_instance;
+sgl::SglController sgl::SglController::s_instance;
 
 void sglInit(void)
 {
@@ -21,12 +21,12 @@ void sglInit(void)
 
 sglEErrorCode sglGetError(void)
 {
-    return static_cast<sglEErrorCode>(sgl::ContextManager::getInstance().getError());
+    return static_cast<sglEErrorCode>(sgl::SglController::getInstance().getError());
 }
 
 const char *sglGetErrorString(sglEErrorCode error)
 {
-    return sgl::ContextManager::getInstance().getErrorString(error);
+    return sgl::SglController::getInstance().getErrorString(error);
 }
 
 void sglFinish(void)
@@ -36,33 +36,33 @@ void sglFinish(void)
 int sglCreateContext(int width, int height)
 {
     assert(width > 0 && height > 0);
-    return sgl::ContextManager::getInstance().createContext(width, height);
+    return sgl::SglController::getInstance().createContext(width, height);
 }
 
 void sglDestroyContext(int id)
 {
-    sgl::ContextManager::getInstance().destroyContext(id);
+    sgl::SglController::getInstance().destroyContext(id);
 }
 
 void sglSetContext(int id)
 {
-    sgl::ContextManager::getInstance().setActive(id);
+    sgl::SglController::getInstance().setActive(id);
 }
 
 int sglGetContext(void)
 {
-    return sgl::ContextManager::getInstance().getActiveId();
+    return sgl::SglController::getInstance().getActiveId();
 }
 
 float *sglGetColorBufferPointer(void)
 {
-    sgl::Context* context = sgl::ContextManager::getInstance().getActive();
+    sgl::Context* context = sgl::SglController::getInstance().getActive();
     return context ? context->colorBufferData() : nullptr;
 }
 
 void sglClear(unsigned what)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -74,7 +74,7 @@ void sglClear(unsigned what)
 
 void sglBegin(sglEElementType mode)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -90,7 +90,7 @@ void sglBegin(sglEElementType mode)
 
 void sglEnd(void)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context)
     {
@@ -102,7 +102,7 @@ void sglEnd(void)
 
 void sglVertex4f(float x, float y, float z, float w)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context) { return; }
     context->addVertex(sgl::vec4(x, y, z, w));
@@ -110,7 +110,7 @@ void sglVertex4f(float x, float y, float z, float w)
 
 void sglVertex3f(float x, float y, float z)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context) { return; }
     context->addVertex(sgl::vec4(x, y, z, 1));
@@ -118,7 +118,7 @@ void sglVertex3f(float x, float y, float z)
 
 void sglVertex2f(float x, float y)
 {    
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context) { return; }
     context->addVertex(sgl::vec4(x, y, 0, 1));
@@ -126,7 +126,7 @@ void sglVertex2f(float x, float y)
 
 void sglCircle(float x, float y, float z, float radius)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -139,7 +139,7 @@ void sglCircle(float x, float y, float z, float radius)
 
 void sglEllipse(float x, float y, float z, float a, float b)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -152,7 +152,7 @@ void sglEllipse(float x, float y, float z, float a, float b)
 
 void sglArc(float x, float y, float z, float radius, float from, float to)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -165,7 +165,7 @@ void sglArc(float x, float y, float z, float radius, float from, float to)
 
 void sglMatrixMode(sglEMatrixMode mode)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -185,7 +185,7 @@ void sglMatrixMode(sglEMatrixMode mode)
 
 void sglPushMatrix(void)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -203,7 +203,7 @@ void sglPushMatrix(void)
 
 void sglPopMatrix(void)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -222,7 +222,7 @@ void sglPopMatrix(void)
 
 void sglLoadIdentity(void)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -235,7 +235,7 @@ void sglLoadIdentity(void)
 
 void sglLoadMatrix(const float *matrix)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -249,7 +249,7 @@ void sglLoadMatrix(const float *matrix)
 
 void sglMultMatrix(const float *matrix)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -263,7 +263,7 @@ void sglMultMatrix(const float *matrix)
 
 void sglTranslate(float x, float y, float z)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -277,7 +277,7 @@ void sglTranslate(float x, float y, float z)
 
 void sglScale(float scalex, float scaley, float scalez)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -290,7 +290,7 @@ void sglScale(float scalex, float scaley, float scalez)
 
 void sglRotate2D(float angle, float centerx, float centery)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -303,7 +303,7 @@ void sglRotate2D(float angle, float centerx, float centery)
 
 void sglRotateY(float angle)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -316,7 +316,7 @@ void sglRotateY(float angle)
 
 void sglOrtho(float left, float right, float bottom, float top, float near, float far)
 {   
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -334,7 +334,7 @@ void sglOrtho(float left, float right, float bottom, float top, float near, floa
 
 void sglFrustum(float left, float right, float bottom, float top, float near, float far)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -352,7 +352,7 @@ void sglFrustum(float left, float right, float bottom, float top, float near, fl
 
 void sglViewport(int x, int y, int width, int height)
 {    
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -369,7 +369,7 @@ void sglViewport(int x, int y, int width, int height)
 
 void sglClearColor(float r, float g, float b, float alpha)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -381,7 +381,7 @@ void sglClearColor(float r, float g, float b, float alpha)
 
 void sglColor3f(float r, float g, float b)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -397,7 +397,7 @@ void sglAreaMode(sglEAreaMode mode)
 
 void sglPointSize(float size)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -409,7 +409,7 @@ void sglPointSize(float size)
 
 void sglEnable(sglEEnableFlags cap)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {
@@ -421,7 +421,7 @@ void sglEnable(sglEEnableFlags cap)
 
 void sglDisable(sglEEnableFlags cap)
 {
-    sgl::ContextManager& m = sgl::ContextManager::getInstance();
+    sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
     if (!context || context->isDrawing())
     {

@@ -7,7 +7,7 @@
 
 namespace sgl 
 {
-    class ContextManager
+    class SglController
     {
     public:
         static inline const uint8_t MAX_CONTEXT_COUNT = 32;
@@ -25,13 +25,13 @@ namespace sgl
         void setError(uint8_t errorCode);
         const char* getErrorString(uint8_t errorCode) const;
 
-        ContextManager();
+        SglController();
 
-        static ContextManager& getInstance();
+        static SglController& getInstance();
         
     private:
 
-        static ContextManager s_instance;
+        static SglController s_instance;
 
         Context& getActiveContext(); 
 

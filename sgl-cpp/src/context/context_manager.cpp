@@ -7,7 +7,7 @@
 
 namespace sgl
 {
-    int ContextManager::createContext(int width, int height)
+    int SglController::createContext(int width, int height)
     {
         int& freeIdx = m_firstFreeIdx;
 
@@ -25,7 +25,7 @@ namespace sgl
         return id;
     }
 
-    void ContextManager::destroyContext(int id)
+    void SglController::destroyContext(int id)
     {
         int& freeIdx = m_firstFreeIdx;
 
@@ -42,7 +42,7 @@ namespace sgl
         }
     }
 
-    void ContextManager::setActive(int id)
+    void SglController::setActive(int id)
     {
         if (id >= MAX_CONTEXT_COUNT || id < 0 || !m_contexts[id].isInitialized() )
         {
@@ -59,7 +59,7 @@ namespace sgl
         m_activeContextId = id;
     }
 
-    Context* ContextManager::getActive()
+    Context* SglController::getActive()
     {
         if (!isActiveValid())
         {
@@ -68,34 +68,34 @@ namespace sgl
         return &m_contexts[m_activeContextId];
     }
 
-    bool ContextManager::isActiveValid() const
+    bool SglController::isActiveValid() const
     {
         return isContextValid(m_activeContextId);
     }
 
-    int ContextManager::getActiveId() const 
+    int SglController::getActiveId() const 
     {
         return m_activeContextId;
     }
 
-    bool ContextManager::isContextValid(int id) const
+    bool SglController::isContextValid(int id) const
     {        
         return id >= 0 && id < MAX_CONTEXT_COUNT && m_contexts[id].isInitialized();
     }
 
-    uint8_t ContextManager::getError()
+    uint8_t SglController::getError()
     {
         uint8_t err = m_currentError;
         m_currentError = SGL_NO_ERROR;
         return err;
     }
 
-    void ContextManager::setError(uint8_t errorCode)
+    void SglController::setError(uint8_t errorCode)
     {
         
     }
 
-    const char* ContextManager::getErrorString(uint8_t errorCode) const
+    const char* SglController::getErrorString(uint8_t errorCode) const
     {
         static const char *errStrigTable[] =
         {
@@ -116,19 +116,19 @@ namespace sgl
         return errStrigTable[errorCode];
     }
 
-    ContextManager::ContextManager()
+    SglController::SglController()
         : m_currentError(SGL_NO_ERROR),
         m_activeContextId(-1),
         m_firstFreeIdx(0)
     {
     }
 
-    ContextManager& ContextManager::getInstance()
+    SglController& SglController::getInstance()
     {
         return s_instance;
     }
 
-    Context& ContextManager::getActiveContext()
+    Context& SglController::getActiveContext()
     {
         assert(m_activeContextId >= 0 && m_activeContextId < MAX_CONTEXT_COUNT);
         return m_contexts[m_activeContextId];
