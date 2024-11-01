@@ -6,7 +6,6 @@
 #include "math/vector.h"
 #include "math/matrix.h"
 #include "math/transform.h"
-#include "math/utils.h"
 
 #include <cassert>
 #include <iostream>

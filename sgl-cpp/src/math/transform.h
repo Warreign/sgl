@@ -3,6 +3,9 @@
 #include "math/matrix.h"
 #include "math/vector.h"
 
+// #include <cmath>
+#include "math.h"
+
 #define M_PI       3.14159265358979323846
 
 namespace sgl
@@ -44,41 +47,41 @@ namespace sgl
 
     constexpr mat4 rotateAroundPointZ()
     {
-        return mat4::identity;
+        return mat4();
     }
 
     constexpr mat4 rotateZ(float angle)
     {
-        return mat4(std::cos(angle), -std::sin(angle), 0, 0,
-                    std::sin(angle),  std::cos(angle), 0, 0,
+        return mat4(cos(angle), -sin(angle), 0, 0,
+                    sin(angle),  cos(angle), 0, 0,
                     0,                    0,                  1, 0,
                     0,                    0,                  0, 1);
     }
 
     constexpr mat4 rotateY(float angle)
     {
-        return mat4(std::cos(angle), 0, -std::sin(angle), 0,
+        return mat4(cos(angle), 0, -sin(angle), 0,
                     0,                   1, 0,                   0,
-                    std::sin(angle), 0,  std::cos(angle), 0,
+                    sin(angle), 0,  cos(angle), 0,
                     0,                   0, 0,                   0);
     }
 
     constexpr mat4 rotate(const vec3& axis, float angle)
     {
-        return mat4::identity;
+        return mat4();
     }
 
     constexpr mat4 ortho(float left, float right, float bottom, float top, float near, float far) 
     {
         return mat4(2/(right-left),     0,                  0,                 -(right+left)/(right-left),
                     0,                  2/(top-bottom),     0,                 -(top+bottom)/(top-bottom),
-                    0,                  0,                 -2/(far-near),      -(far+near)/(far-near),
+                    0,                  0,                 -2/(far-near),      -(far+near)  /(far-near),
                     0,                  0,                  0,                  1);
     }
 
     constexpr mat4 perspective(float left, float right, float bottom, float top, float near, float far)
     {
-        return mat4::identity;
+        return mat4();
     }
 
     constexpr mat4 viewport(int x, int y, int width, int height)

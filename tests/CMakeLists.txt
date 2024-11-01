@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(
     "${CMAKE_SOURCE_DIR}/sgl-cpp/include"
+    "${CMAKE_SOURCE_DIR}/sgl-cpp/src"
 )
 
 set(BIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)

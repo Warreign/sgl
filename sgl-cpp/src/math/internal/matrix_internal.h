@@ -2,9 +2,16 @@
 
 #include "vector_internal.h"
 
+#include <immintrin.h>
+#include <pmmintrin.h>
+
 #include <array>
 #include <type_traits>
 #include <ostream>
+#include <xmmintrin.h>
+
+#pragma GCC target("sse3")
+#pragma GCC target("avx2")
 
 namespace sgl 
 {
@@ -84,7 +91,7 @@ namespace sgl
 
     template <size_t N, size_t M, typename T>
     constexpr Vector<M, T> operator*(const Matrix<N, M, T>& m, const Vector<M, T>& v);
-    
+
 }
 
 #include "matrix_internal.inl"

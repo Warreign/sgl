@@ -72,5 +72,13 @@ int main()
 
     std::cout << ptrm << std::endl;
 
+    const float* ptr = reinterpret_cast<const float*>(&sgl::mat4::identity[0]);
+
+    sgl::mat4 mm1 = sgl::mat4::identity, mm2 = sgl::mat4::identity;
+
+    sgl::mat4 mm3 = mm2 + mm1;
+
+    std::cout << mm3 << std::endl;
+
     return 0;
 }

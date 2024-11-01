@@ -1,10 +1,10 @@
+#include "matrix_internal.h"
 #include <cassert>
 #include <algorithm>
 #include <numeric>
 
 namespace sgl
 {
-    
     template <size_t N, size_t M, typename T>
     inline constexpr Matrix<N, M, T>::Matrix(const column_t (& list)[N])
     {
@@ -88,7 +88,7 @@ namespace sgl
     template <size_t N, size_t M, typename T>
     inline constexpr const T* Matrix<N, M, T>::data_ptr() const
     {
-        return m_data.data();
+        return m_data[0].data_ptr();
     }
 
     template <size_t N, size_t M, typename T>

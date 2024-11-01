@@ -128,6 +128,9 @@ namespace sgl
 
         constexpr Vector<N, T>& operator=(Vector<N, T>&& other);
 
+        constexpr T* data_ptr();
+        constexpr const T* data_ptr() const;
+
         std::string toString(char start = '(', char end = ')') const;
 
         friend std::ostream &operator<<(std::ostream &os, const Vector<N, T> &rhs)
@@ -164,6 +167,18 @@ namespace sgl
 
     template <size_t N, typename T>
     constexpr bool operator!=(const Vector<N, T>& v1, const Vector<N, T>& v2);
+
+    template <size_t N, typename T>
+    constexpr T* Vector<N, T>::data_ptr()
+    {
+        return this->m_data.data();
+    }
+
+    template <size_t N, typename T>
+    constexpr const T* Vector<N, T>::data_ptr() const
+    {
+        return this->m_data.data();
+    }
 
 } // namespace
 

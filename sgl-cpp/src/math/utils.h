@@ -1,6 +1,6 @@
 #pragma once
 
-#include "internal/vector_internal.h"
+#include "math/internal/vector_internal.h"
 
 #include <cmath>
 

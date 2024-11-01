@@ -1,10 +1,9 @@
-#include "context/context.h"
+#include "context.h"
 
 #include "math/transform.h"
 #include "sgl.h"
 
 #include <cmath>
-#include <corecrt_math_defines.h>
 #include <iostream>
 #include <cassert>
 
@@ -305,7 +304,7 @@ namespace sgl
     {    
         int steps = 40;
 
-        steps = static_cast<int>( static_cast<float>(steps) * (toRad-fromRad) / M_2_PI );
+        steps = static_cast<int>( static_cast<float>(steps) * (toRad-fromRad) / 2 * M_PI);
 
         float dtheta = (toRad-fromRad) / steps;
 

@@ -1,4 +1,4 @@
-#include "math/vector.h"
+#include "../src/math/vector.h"
 
 #include <cassert>
 #include <iostream>

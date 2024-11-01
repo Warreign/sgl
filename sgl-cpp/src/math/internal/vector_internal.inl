@@ -1,3 +1,5 @@
+#include "vector_internal.h"
+
 #include <cassert>
 #include <algorithm>
 #include <sstream>

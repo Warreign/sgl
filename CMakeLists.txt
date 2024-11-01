@@ -17,14 +17,19 @@ find_package(OpenGL)
 # Set general compiler flags.
 if (WIN32)
   add_definitions(-D__WINDOWS__ -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -mavx2")
 endif (WIN32)
 
 if (APPLE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework OpenGL -framework GLUT")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework OpenGL -framework GLUT -msse3 -mavx2")
 endif (APPLE)
 
 # Do not use GUI by default.
 add_definitions(-DUSE_GUI=1)
+
+# 0.0169804
+# 0.00593185
+# 0.0036242
 
 set(HDR
   hdrloader.h
