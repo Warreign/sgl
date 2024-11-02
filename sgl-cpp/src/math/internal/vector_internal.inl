@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <cstring>
 #include <sstream>
 #include <iomanip>
 
@@ -12,13 +13,7 @@ namespace sgl
     template <size_t N, typename T>
     inline constexpr Vector<N, T>::Vector()
     {
-        this->m_data.fill(static_cast<T>(0));
-    }
-
-    template <size_t N, typename T>
-    inline constexpr Vector<N, T>::Vector(Vector<N, T> &&other) 
-    {
-        this->m_data = std::move(other.m_data);
+        std::memset(this->m_data.data(), 0, N * sizeof(T));
     }
 
     template <size_t N, typename T>

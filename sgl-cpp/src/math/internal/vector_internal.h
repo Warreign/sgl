@@ -82,7 +82,7 @@ namespace sgl
 
         // Default initializer constructor
         constexpr Vector();
-        constexpr Vector(Vector<N, T>&& other);
+        constexpr Vector(Vector<N, T>&& /*other*/) = default;
 
         // Scalar constructor
         template <typename U, typename = std::enable_if_t<std::is_arithmetic_v<U>>>

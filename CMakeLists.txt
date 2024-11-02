@@ -14,14 +14,15 @@ find_package(GLUT)
 set(OpenGL_GL_PREFERENCE LEGACY)
 find_package(OpenGL)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -mavx2 -Wno-c++20-extensions")
+
 # Set general compiler flags.
 if (WIN32)
   add_definitions(-D__WINDOWS__ -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -mavx2")
 endif (WIN32)
 
 if (APPLE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework OpenGL -framework GLUT -msse3 -mavx2")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework OpenGL -framework GLUT")
 endif (APPLE)
 
 # Do not use GUI by default.
