@@ -31,6 +31,8 @@ int main()
     sgl::vec3i veci(vecf);
     std::cout << veci << std::endl;
 
+    std::cout << sgl::vec4(vecf, 777) << std::endl;
+
 
     return 0;
 }

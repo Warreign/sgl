@@ -10,6 +10,8 @@
 #include <cassert>
 #include <iostream>
 
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
 
 sgl::SglController sgl::SglController::s_instance;
 
@@ -133,7 +135,7 @@ void sglCircle(float x, float y, float z, float radius)
         return;
     }
 
-    context->drawCirclePolar(sgl::vec3(x, y, z), radius);
+    context->drawCircle(sgl::vec3(x, y, z), radius);
 }
 
 void sglEllipse(float x, float y, float z, float a, float b)

@@ -6,6 +6,8 @@
 #include <sstream>
 #include <iomanip>
 
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
 namespace sgl 
 {
 
@@ -282,8 +284,7 @@ namespace sgl
             this->m_data[i] = static_cast<T>(v[i]);
         }
         
-        size_t i = M;
-        ([&]()
+        ([&, i = M]() mutable
         {
             this->m_data[i++] = static_cast<T>(rest);
         }(), ...);

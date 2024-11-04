@@ -118,8 +118,8 @@ namespace sgl
 
     SglController::SglController()
         : m_currentError(SGL_NO_ERROR),
-        m_activeContextId(-1),
-        m_firstFreeIdx(0)
+        m_firstFreeIdx(0),
+        m_activeContextId(-1)
     {
     }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#define SGL_SIMD
+
 #include "vector_internal.h"
 
 #include <immintrin.h>
@@ -10,8 +12,10 @@
 #include <ostream>
 #include <xmmintrin.h>
 
-#pragma GCC target("sse3")
-#pragma GCC target("avx2")
+#ifdef SGL_SIMD
+#pragma GCC target ("sse3")
+#pragma GCC target ("avx2")
+#endif
 
 namespace sgl 
 {
@@ -54,7 +58,7 @@ namespace sgl
         // Assignment operators
         constexpr Matrix<N, M, T>& operator=(const Matrix<N, M, T>& other);
 
-        constexpr Matrix<M, N, T> transpose() const;
+        Matrix<M, N, T> transpose() const;
 
         constexpr const T* data_ptr() const;
 
@@ -92,12 +96,14 @@ namespace sgl
     template <size_t N, size_t M, typename T>
     constexpr Vector<M, T> operator*(const Matrix<N, M, T>& m, const Vector<M, T>& v);
 
-    // SIMD 
-    constexpr Matrix<4, 4, float> operator+(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2);
-    constexpr Matrix<4, 4, float> operator-(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2);
-    constexpr Matrix<4, 4, float> operator*(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2);
 
-    constexpr Vector<4, float> operator*(const Matrix<4, 4, float>& m, const Vector<4, float>& v);
+#ifdef SGL_SIMD
+    Matrix<4, 4, float> operator+(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2);
+    Matrix<4, 4, float> operator-(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2);
+    Matrix<4, 4, float> operator*(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2);
+
+    Vector<4, float> operator*(const Matrix<4, 4, float>& m, const Vector<4, float>& v);
+#endif
 }
 
 #include "matrix_internal.inl"

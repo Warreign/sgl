@@ -3,13 +3,15 @@
 #include <algorithm>
 #include <numeric>
 
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
 namespace sgl
 {
     template <size_t N, size_t M, typename T>
     inline constexpr Matrix<N, M, T>::Matrix(const column_t (& list)[N])
     {
         for (int i = 0; i < N; ++i)
-        {
+    {
             m_data[i] = list[i];
         }
     }
@@ -41,7 +43,7 @@ namespace sgl
     }
 
     template <size_t N, size_t M, typename T>
-    inline constexpr Matrix<M, N, T> Matrix<N, M, T>::transpose() const
+    inline Matrix<M, N, T> Matrix<N, M, T>::transpose() const
     {
         Matrix<M, N, T> ret;
         for (size_t n = 0; n < N; ++n)
@@ -192,9 +194,8 @@ namespace sgl
         }
     }
 
-    // SIMD 
-    
-    inline constexpr Matrix<4, 4, float> operator+(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
+#ifdef SGL_SIMD
+    inline Matrix<4, 4, float> operator+(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
     {
         __m256 col01in1 = _mm256_loadu_ps(m1[0].data_ptr());
         __m256 col23in1 = _mm256_loadu_ps(m1[2].data_ptr());
@@ -212,7 +213,7 @@ namespace sgl
         return result;
     }
 
-    inline constexpr Matrix<4, 4, float> operator-(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
+    inline Matrix<4, 4, float> operator-(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
     {
         __m256 col01in1 = _mm256_loadu_ps(m1[0].data_ptr());
         __m256 col23in1 = _mm256_loadu_ps(m1[2].data_ptr());
@@ -230,15 +231,14 @@ namespace sgl
         return result;
     }
 
-    inline constexpr Matrix<4, 4, float> operator*(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
+    inline Matrix<4, 4, float> operator*(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
     {
         Matrix<4,4, float> result;
 
-        __m128 rows[4];
-        rows[0] = _mm_loadu_ps(m1[0].data_ptr());
-        rows[1] = _mm_loadu_ps(m1[1].data_ptr());
-        rows[2] = _mm_loadu_ps(m1[2].data_ptr());
-        rows[3] = _mm_loadu_ps(m1[3].data_ptr());
+        __m128 rows[4] { _mm_loadu_ps(m1[0].data_ptr()),
+                         _mm_loadu_ps(m1[1].data_ptr()),
+                         _mm_loadu_ps(m1[2].data_ptr()),
+                         _mm_loadu_ps(m1[3].data_ptr()) };
 
         _MM_TRANSPOSE4_PS(rows[0], rows[1], rows[2], rows[3]);
 
@@ -279,7 +279,7 @@ namespace sgl
     }
     
     template<>
-    inline constexpr Matrix<4, 4, float> Matrix<4, 4, float>::transpose() const
+    inline Matrix<4, 4, float> Matrix<4, 4, float>::transpose() const
     {
         Matrix<4, 4, float> ret;
 
@@ -298,13 +298,12 @@ namespace sgl
         return ret;
     }
 
-    inline constexpr Vector<4, float> operator*(const Matrix<4, 4, float>& m, const Vector<4, float>& v)
+    inline Vector<4, float> operator*(const Matrix<4, 4, float>& m, const Vector<4, float>& v)
     {
-        __m128 rows[4];
-        rows[0] = _mm_loadu_ps(m[0].data_ptr());
-        rows[1] = _mm_loadu_ps(m[1].data_ptr());
-        rows[2] = _mm_loadu_ps(m[2].data_ptr());
-        rows[3] = _mm_loadu_ps(m[3].data_ptr());
+        __m128 rows[4] { _mm_loadu_ps(m[0].data_ptr()),
+                         _mm_loadu_ps(m[1].data_ptr()),
+                         _mm_loadu_ps(m[2].data_ptr()),
+                         _mm_loadu_ps(m[3].data_ptr()) };
 
         _MM_TRANSPOSE4_PS(rows[0], rows[1], rows[2], rows[3]);
 
@@ -335,5 +334,6 @@ namespace sgl
 
         return ret;
     }
+#endif
 
 }

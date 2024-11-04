@@ -12,3 +12,6 @@ sgl-zig/*
 
 .vscode/*
 .vs/*
+
+*.zip
+results/*

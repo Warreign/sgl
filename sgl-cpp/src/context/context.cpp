@@ -9,6 +9,8 @@
 
 #include <algorithm>
 
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
 namespace sgl
 {
 
@@ -29,15 +31,15 @@ namespace sgl
         : m_id(id),
           m_width(width),
           m_height(height),
-          m_isModelActive(true),
           m_isDrawing(false),
-          m_drawColor(0.0, 0.0, 0.0),
-          m_clearColor(0.0, 0.0, 0.0),
           m_pointSize(4),
+          m_viewport(mat4::identity),
+          m_isModelActive(true),
+          m_clearColor(0.0, 0.0, 0.0),
+          m_drawColor(0.0, 0.0, 0.0),
           m_colorBuffer(width * height, sgl::vec3(0.0, 0.0, 0.0)),
           m_depthBuffer(width * height, 0),
           m_elementType(SGL_LAST_ELEMENT_TYPE),
-          m_viewport(mat4::identity),
           m_PVM(mat4::identity)
     {
         m_modelStack.push_back(mat4::identity);
