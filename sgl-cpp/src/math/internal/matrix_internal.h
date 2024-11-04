@@ -11,8 +11,8 @@
 #include <xmmintrin.h>
 
 #ifdef SGL_SIMD
-#pragma GCC target ("sse3")
-#pragma GCC target ("avx2")
+#pragma GCC target("sse3")
+#pragma GCC target("avx")
 #endif
 
 namespace sgl 

@@ -75,18 +75,7 @@ namespace sgl
         }
         return *this;
     }
-
-/*
-    template <size_t N, size_t M, typename T>
-    inline constexpr Matrix<N, M, T>& Matrix<N, M, T>::operator*=(const Matrix<M, N, T> &other)
-    {
-        for (size_t i = 0; i < N; ++i)
-        {
-            m_data[i] += other.m_data[i];
-        }
-    }
-*/
-
+    
     template <size_t N, size_t M, typename T>
     inline constexpr const T* Matrix<N, M, T>::data_ptr() const
     {
@@ -195,89 +184,7 @@ namespace sgl
     }
 
 #ifdef SGL_SIMD
-    inline Matrix<4, 4, float> operator+(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
-    {
-        __m256 col01in1 = _mm256_loadu_ps(m1[0].data_ptr());
-        __m256 col23in1 = _mm256_loadu_ps(m1[2].data_ptr());
-
-        __m256 col01in2 = _mm256_loadu_ps(m2[0].data_ptr());
-        __m256 col23in2 = _mm256_loadu_ps(m2[2].data_ptr());
-
-        __m256 col01out = _mm256_add_ps(col01in1, col01in2);
-        __m256 col23out = _mm256_add_ps(col23in1, col23in2);
-
-        Matrix<4,4,float> result;
-        _mm256_storeu_ps(result[0].data_ptr(), col01out);
-        _mm256_storeu_ps(result[2].data_ptr(), col23out);
-
-        return result;
-    }
-
-    inline Matrix<4, 4, float> operator-(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
-    {
-        __m256 col01in1 = _mm256_loadu_ps(m1[0].data_ptr());
-        __m256 col23in1 = _mm256_loadu_ps(m1[2].data_ptr());
-
-        __m256 col01in2 = _mm256_loadu_ps(m2[0].data_ptr());
-        __m256 col23in2 = _mm256_loadu_ps(m2[2].data_ptr());
-
-        __m256 col01out = _mm256_sub_ps(col01in1, col01in2);
-        __m256 col23out = _mm256_sub_ps(col23in1, col23in2);
-
-        Matrix<4,4,float> result;
-        _mm256_storeu_ps(result[0].data_ptr(), col01out);
-        _mm256_storeu_ps(result[2].data_ptr(), col23out);
-
-        return result;
-    }
-
-    inline Matrix<4, 4, float> operator*(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
-    {
-        Matrix<4,4, float> result;
-
-        __m128 rows[4] { _mm_loadu_ps(m1[0].data_ptr()),
-                         _mm_loadu_ps(m1[1].data_ptr()),
-                         _mm_loadu_ps(m1[2].data_ptr()),
-                         _mm_loadu_ps(m1[3].data_ptr()) };
-
-        _MM_TRANSPOSE4_PS(rows[0], rows[1], rows[2], rows[3]);
-
-        __m256 row01m2 = _mm256_loadu_ps(m2[0].data_ptr());
-        __m256 row23m2 = _mm256_loadu_ps(m2[2].data_ptr());
-
-        for (int i = 0; i < 4; ++i)
-        {
-            __m256 rowm1 = _mm256_set_m128(rows[i], rows[i]);
-            
-            __m256 val0 = _mm256_mul_ps(rowm1, row01m2);
-            val0 = _mm256_hadd_ps(val0, val0);
-            val0 = _mm256_hadd_ps(val0, val0);
-
-            __m256 val1 = _mm256_mul_ps(rowm1, row23m2);
-            val1 = _mm256_hadd_ps(val1, val1);
-            val1 = _mm256_hadd_ps(val1, val1);
-
-            __m256i idxMask = _mm256_set_epi32(4, 0, 4, 0, 4, 0, 4, 0);
-            __m256 resperm01 = _mm256_permutevar8x32_ps(val0, idxMask);
-            __m256 resperm23 = _mm256_permutevar8x32_ps(val1, idxMask);
-            __m128 res01 = _mm256_castps256_ps128(resperm01);
-            __m128 res23 = _mm256_castps256_ps128(resperm23);
-
-            __m128 res = _mm_movelh_ps(res01, res23);
-
-            rows[i] = res;
-        }
-
-        _MM_TRANSPOSE4_PS(rows[0], rows[1], rows[2], rows[3]);
-
-        _mm_storeu_ps(result[0].data_ptr(), rows[0]);
-        _mm_storeu_ps(result[1].data_ptr(), rows[1]);
-        _mm_storeu_ps(result[2].data_ptr(), rows[2]);
-        _mm_storeu_ps(result[3].data_ptr(), rows[3]);
-
-        return result;
-    }
-    
+       
     template<>
     inline Matrix<4, 4, float> Matrix<4, 4, float>::transpose() const
     {
@@ -298,8 +205,79 @@ namespace sgl
         return ret;
     }
 
+    inline Matrix<4, 4, float> operator+(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
+    {
+        Matrix<4,4,float> result;
+
+        for (int i = 0; i < 4; ++i)
+        {
+            __m128 col1 = _mm_loadu_ps(m1[i].data_ptr());
+            __m128 col2 = _mm_loadu_ps(m2[i].data_ptr());
+
+            __m128 rescol = _mm_add_ps(col1, col2);
+
+            _mm_storeu_ps(result[i].data_ptr(), rescol);
+        }
+        return result;
+    }
+
+    inline Matrix<4, 4, float> operator-(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
+    {
+        Matrix<4,4,float> result;
+
+        for (int i = 0; i < 4; ++i)
+        {
+            __m128 col1 = _mm_loadu_ps(m1[i].data_ptr());
+            __m128 col2 = _mm_loadu_ps(m2[i].data_ptr());
+
+            __m128 rescol = _mm_sub_ps(col1, col2);
+
+            _mm_storeu_ps(result[i].data_ptr(), rescol);
+        }
+        return result;
+    }
+
+    inline Matrix<4, 4, float> operator*(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2)
+    {
+        Matrix<4,4, float> result;
+
+        __m128 rows[4] { _mm_loadu_ps(m1[0].data_ptr()),
+                         _mm_loadu_ps(m1[1].data_ptr()),
+                         _mm_loadu_ps(m1[2].data_ptr()),
+                         _mm_loadu_ps(m1[3].data_ptr()) };
+
+        _MM_TRANSPOSE4_PS(rows[0], rows[1], rows[2], rows[3]);
+
+        for (int i = 0; i < 4; ++i)
+        {
+            for (int j = 0; j < 4; ++j)
+            {
+                __m128 row = rows[i];
+                __m128 col = _mm_loadu_ps(m2[j].data_ptr());
+
+                __m128 mul = _mm_mul_ps(row, col);
+
+                __m128 sum = _mm_hadd_ps(mul, mul);
+                sum = _mm_hadd_ps(sum, sum);
+
+                result[i][j] = _mm_cvtss_f32(sum);
+            }
+        }
+
+        // _MM_TRANSPOSE4_PS(rows[0], rows[1], rows[2], rows[3]);
+
+        // _mm_storeu_ps(result[0].data_ptr(), rows[0]);
+        // _mm_storeu_ps(result[1].data_ptr(), rows[1]);
+        // _mm_storeu_ps(result[2].data_ptr(), rows[2]);
+        // _mm_storeu_ps(result[3].data_ptr(), rows[3]);
+
+        return result.transpose();
+    }
+
     inline Vector<4, float> operator*(const Matrix<4, 4, float>& m, const Vector<4, float>& v)
     {
+        Vector<4, float> ret;
+
         __m128 rows[4] { _mm_loadu_ps(m[0].data_ptr()),
                          _mm_loadu_ps(m[1].data_ptr()),
                          _mm_loadu_ps(m[2].data_ptr()),
@@ -307,30 +285,18 @@ namespace sgl
 
         _MM_TRANSPOSE4_PS(rows[0], rows[1], rows[2], rows[3]);
 
-        __m256 row01m2 = _mm256_setr_m128(rows[0], rows[1]);
-        __m256 row23m2 = _mm256_setr_m128(rows[2], rows[3]);
-
-        __m128 vc128 = _mm_loadu_ps(v.data_ptr());
-        __m256 vc = _mm256_broadcast_ps(&vc128);
+        __m128 vc = _mm_loadu_ps(v.data_ptr());
             
-        __m256 val0 = _mm256_mul_ps(vc, row01m2);
-        val0 = _mm256_hadd_ps(val0, val0);
-        val0 = _mm256_hadd_ps(val0, val0);
+        for (int i = 0; i < 4; ++i)
+        {
+            __m128 mul = _mm_mul_ps(rows[i], vc);
+            __m128 sum = _mm_hadd_ps(mul, mul);
+            sum = _mm_hadd_ps(sum, sum);
 
-        __m256 val1 = _mm256_mul_ps(vc, row23m2);
-        val1 = _mm256_hadd_ps(val1, val1);
-        val1 = _mm256_hadd_ps(val1, val1);
+            ret[i] = _mm_cvtss_f32(sum);
+        }
 
-        __m256i idxMask = _mm256_set_epi32(4, 0, 4, 0, 4, 0, 4, 0);
-        __m256 resperm01 = _mm256_permutevar8x32_ps(val0, idxMask);
-        __m256 resperm23 = _mm256_permutevar8x32_ps(val1, idxMask);
-        __m128 res01 = _mm256_castps256_ps128(resperm01);
-        __m128 res23 = _mm256_castps256_ps128(resperm23);
-
-        __m128 res = _mm_movelh_ps(res01, res23);
-
-        Vector<4, float> ret;
-        _mm_storeu_ps(ret.data_ptr(), res);
+        // _mm_storeu_ps(ret.data_ptr(), res);
 
         return ret;
     }
