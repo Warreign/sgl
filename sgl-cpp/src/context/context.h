@@ -51,7 +51,7 @@ public:
     void addVertex(const vec4& vertex, const mat4& matrix);
     void drawBuffer();
     
-    void drawCircle(vec3 center, float radius);
+    void drawCircle(vec3 center, float radius, bool fill = false);
     void drawCirclePolar(vec3 center, float radius);
     void drawEllipse(vec3 center, float a, float b);
     void drawArc(vec3 center, float radius, float fromRad, float toRad);

@@ -1,7 +1,5 @@
 #pragma once
 
-#define SGL_SIMD
-
 #include "vector_internal.h"
 
 #include <immintrin.h>

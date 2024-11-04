@@ -14,6 +14,8 @@ find_package(GLUT)
 set(OpenGL_GL_PREFERENCE LEGACY)
 find_package(OpenGL)
 
+option(USE_SIMD "Enable usage of SIMD instructions for matrix multiplication" ON)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -mavx2 -Wall")
 
 # Set general compiler flags.
@@ -27,10 +29,6 @@ endif (APPLE)
 
 # Do not use GUI by default.
 add_definitions(-DUSE_GUI=1)
-
-# 0.0169804
-# 0.00593185
-# 0.0036242
 
 set(HDR
   hdrloader.h

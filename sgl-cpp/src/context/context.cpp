@@ -184,9 +184,6 @@ namespace sgl
             return;
         }
 
-        auto applyDivisionViewport = [this](const vec4& vertex) { return m_viewport * (vertex / vertex.w); };
-        std::transform(m_vertexBuffer.cbegin(), m_vertexBuffer.cend(), m_vertexBuffer.begin(), applyDivisionViewport);
-
         switch (m_elementType)
         {
             case SGL_POINTS:
@@ -218,7 +215,10 @@ namespace sgl
                     vec2 p2 = m_vertexBuffer[i];
                     drawLine(p1, p2);
                 }
-                drawLine(m_vertexBuffer.back(), m_vertexBuffer.front());
+                if (m_vertexBuffer.size() > 2)
+                {
+                    drawLine(m_vertexBuffer.back(), m_vertexBuffer.front());
+                }
                 break;
         }
         m_isDrawing = false;
@@ -226,7 +226,7 @@ namespace sgl
         m_vertexBuffer.clear();
     }
 
-    void Context::drawCircle(vec3 center, float radius) 
+    void Context::drawCircle(vec3 center, float radius, bool fill) 
     {
         vec3i c(m_PVM * vec4(center, 1));
 
@@ -265,7 +265,6 @@ namespace sgl
             ++x;
         }
     }
-
     void Context::drawCirclePolar(vec3 center, float radius)
     {
         int steps = 40;
@@ -367,7 +366,7 @@ namespace sgl
 
     void Context::updatePVM()
     {
-        m_PVM = getProjection() * getModelView();
+        m_PVM = m_viewport * getProjection() * getModelView();
     }
 
     bool Context::isDrawing() const

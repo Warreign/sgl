@@ -6,6 +6,10 @@ add_library(${PROJECT_NAME} STATIC ${SGL_CXX})
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
+if (USE_SIMD)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE SGL_SIMD)
+endif()
+
 target_sources(${PROJECT_NAME} PRIVATE ${SGL_CXX})
 
 target_include_directories(${PROJECT_NAME}
