@@ -16,11 +16,10 @@ find_package(OpenGL)
 
 option(USE_SIMD "Enable usage of SIMD instructions for matrix multiplication" ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -mavx2 -Wall")
-
 # Set general compiler flags.
 if (WIN32)
   add_definitions(-D__WINDOWS__ -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -mavx2 -Wall")
 endif (WIN32)
 
 if (APPLE)
