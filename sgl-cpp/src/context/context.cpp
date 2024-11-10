@@ -200,6 +200,8 @@ namespace sgl
             return;
         }
 
+        int vertexCount = static_cast<int>(m_vertexBuffer.size());
+
         switch (m_elementType)
         {
             case SGL_POINTS:
@@ -210,7 +212,7 @@ namespace sgl
                 break;
 
             case SGL_LINES:
-                for (int i = 1; i < m_vertexBuffer.size(); i += 2)
+                for (int i = 1; i < vertexCount; i += 2)
                 {
                     vec3 p1 = m_vertexBuffer[i-1];
                     vec3 p2 = m_vertexBuffer[i];
@@ -227,75 +229,64 @@ namespace sgl
                 break;
 
             case SGL_LINE_STRIP:
-                for (int i = 1; i < m_vertexBuffer.size(); ++i)
+                if (m_areaMode == SGL_POINT)
                 {
-                    vec3 p1 = m_vertexBuffer[i-1];
-                    vec3 p2 = m_vertexBuffer[i];
-                    if (m_areaMode == SGL_POINT)
+                    for (int i = 0; i < vertexCount; ++i)
                     {
-                        drawPoint(p1);
-                        if (m_vertexBuffer.size()-1 == i)
-                        {
-                            drawPoint(p2);
-                        }
+                        vec3 p = m_vertexBuffer[i];
+                        drawPoint(p);
                     }
-                    else 
+                }
+                else 
+                {
+                    for (int i = 0; i < vertexCount-1; ++i)
                     {
+                        vec3 p1 = m_vertexBuffer[i];
+                        vec3 p2 = m_vertexBuffer[(i+1) % vertexCount];
                         drawLine(p1, p2);
                     }
                 }
                 break;
 
             case SGL_LINE_LOOP:
-                for (int i = 1; i < m_vertexBuffer.size(); ++i)
+                if (m_areaMode == SGL_POINT)
                 {
-                    vec3 p1 = m_vertexBuffer[i-1];
-                    vec3 p2 = m_vertexBuffer[i];
-                    if (m_areaMode == SGL_POINT)
+                    for (int i = 0; i < vertexCount; ++i)
                     {
-                        drawPoint(p1);
-                    }
-                    else 
-                    {
-                        drawLine(p1, p2);
+                        vec3 p = m_vertexBuffer[i];
+                        drawPoint(p);
                     }
                 }
-                if (m_vertexBuffer.size() > 2)
+                else 
                 {
-                    if (m_areaMode == SGL_POINT)
+                    for (int i = 0; i < vertexCount; ++i)
                     {
-                        drawPoint(m_vertexBuffer.back());
-                    }
-                    else
-                    {
-                        drawLine(m_vertexBuffer.back(), m_vertexBuffer.front());
+                        vec3 p1 = m_vertexBuffer[i];
+                        vec3 p2 = m_vertexBuffer[(i+1) % vertexCount];
+                        drawLine(p1, p2);
                     }
                 }
                 break;
 
-            case SGL_POLYGON:   // Draw in the same way for both polygons at the beginning
+            case SGL_POLYGON:   // Draw polygon the same way as a line loop
                 if (m_vertexBuffer.size() > 2)
                 {
-                    for (int i = 1; i < m_vertexBuffer.size(); ++i)
-                    {
-                        vec3 p1 = m_vertexBuffer[i-1];
-                        vec3 p2 = m_vertexBuffer[i];
-                        if (m_areaMode == SGL_POINT)
-                        {
-                            drawPoint(p1);
-                        }
-                        else 
-                        {
-                            drawLine(p1, p2);
-                        }
-                    }
                     if (m_areaMode == SGL_POINT)
                     {
-                        drawPoint(m_vertexBuffer.back());
+                        for (int i = 0; i < vertexCount; ++i)
+                        {
+                            vec3 p = m_vertexBuffer[i];
+                            drawPoint(p);
+                        }
                     }
-                    else
+                    else 
                     {
-                        drawLine(m_vertexBuffer.back(), m_vertexBuffer.front());
+                        for (int i = 0; i < vertexCount; ++i)
+                        {
+                            vec3 p1 = m_vertexBuffer[i];
+                            vec3 p2 = m_vertexBuffer[(i+1) % vertexCount];
+                            drawLine(p1, p2);
+                        }
                     }
                     if (m_areaMode == SGL_FILL) // Fill if the appropriate fill mode is selected
                     {
@@ -304,7 +295,7 @@ namespace sgl
                 }
                 break;
             case SGL_TRIANGLES:
-                for (int i = 2; i < m_vertexBuffer.size(); ++i)
+                for (int i = 2; i < vertexCount; ++i)
                 {
                     vec4 p1 = m_vertexBuffer[i-2];
                     vec4 p2 = m_vertexBuffer[i-1];
@@ -405,7 +396,7 @@ namespace sgl
 
         vec2i c(center);
 
-        beginDrawing(SGL_LINE_LOOP);
+        beginDrawing(m_areaMode == SGL_FILL ? SGL_POLYGON : SGL_LINE_LOOP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = i * dtheta;
@@ -442,7 +433,7 @@ namespace sgl
         for (int yPixel = std::max(static_cast<int>(y-halfSize), 0); yPixel < std::min(static_cast<uint32_t>(y+halfSize), m_height); ++yPixel)
         {
             uint32_t xPixelStart = std::max(static_cast<int>(x-halfSize), 0);
-            uint32_t xPixelEnd = std::min(static_cast<uint32_t>(x+halfSize), m_width);
+            uint32_t xPixelEnd = x + halfSize;
             putLine(xPixelStart, xPixelEnd, yPixel, m_drawColor);
         }
     }
