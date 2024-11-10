@@ -4,10 +4,12 @@
 #include "sgl.h"
 
 #include <cmath>
+#include <functional>
 #include <iostream>
 #include <cassert>
 
 #include <algorithm>
+#include <limits>
 
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
@@ -40,6 +42,7 @@ namespace sgl
           m_colorBuffer(width * height, sgl::vec3(0.0, 0.0, 0.0)),
           m_depthBuffer(width * height, 0),
           m_areaMode(SGL_LINE),
+          m_fillFunc(std::bind(&Context::fill, this, std::placeholders::_1)),
           m_elementType(SGL_LAST_ELEMENT_TYPE),
           m_PVM(mat4::identity)
     {
@@ -59,7 +62,7 @@ namespace sgl
         }
         if (what & SGL_DEPTH_BUFFER_BIT)
         {
-            std::fill(m_depthBuffer.begin(), m_depthBuffer.end(), 0);
+            std::fill(m_depthBuffer.begin(), m_depthBuffer.end(), std::numeric_limits<uint32_t>::max());
         }
     }
 
@@ -84,10 +87,10 @@ namespace sgl
         m_pointSize = newSize;
     }
 
-    void Context::drawLine(vec2 p1f, vec2 p2f) 
+    void Context::drawLine(vec3 p1f, vec3 p2f) 
     {
-        vec2i p1(p1f);
-        vec2i p2(p2f);
+        vec3i p1(p1f);
+        vec3i p2(p2f);
 
         int dx = std::abs(p2.x - p1.x);
         int dy = std::abs(p2.y - p1.y);
@@ -97,7 +100,13 @@ namespace sgl
 
         int err = dx - dy;
 
-        putPixel(p1, m_drawColor);
+        std::function putPixelFunc = [&](const vec3i& p, const vec3& color) { putPixel(p, color); };
+        if (m_features.test(SGL_DEPTH_TEST))
+        {
+            putPixelFunc = [&](const vec3i& p, const vec3& c) { putPixelDepth(p, c); };
+        }
+
+        putPixelFunc(p1, m_drawColor);
         while (p1.x != p2.x || p1.y != p2.y)
         {
             int e2 = 2 * err;
@@ -113,7 +122,8 @@ namespace sgl
                 err += dx;
                 p1.y += slopeY;
             }
-            putPixel(p1, m_drawColor);
+
+            putPixelFunc(p1, m_drawColor);
         }
     }
 
@@ -131,11 +141,23 @@ namespace sgl
     void Context::enableFeatures(uint32_t features)
     {
         m_features |= features;
+
+        if (features & SGL_DEPTH_TEST)
+        {
+            using namespace std::placeholders;
+            m_fillFunc = std::bind(&Context::fillDepth, this, _1);
+        }
     }
 
     void Context::disableFeatures(uint32_t features)
     {        
         m_features &= ~features;
+
+        if (features & SGL_DEPTH_TEST)
+        {
+            using namespace std::placeholders;
+            m_fillFunc = std::bind(&Context::fill, this, _1);
+        }
     }
 
     void Context::putPixel(int x, int y, const vec3& color)
@@ -148,9 +170,29 @@ namespace sgl
         m_colorBuffer[point2idx(x, y)] = color;
     }
 
-    void Context::putPixel(const vec2i& screenPos, const vec3& color)
+    void Context::putPixelDepth(int x, int y, int z, const vec3& color)
+    {
+        assert(m_isInitialized);
+        if (x < 0 || y < 0 || x >= m_width || y >= m_height)
+        {
+            return;
+        }
+        int idx = point2idx(x, y);
+        if (z < m_depthBuffer[idx])
+        {
+            m_depthBuffer[idx] = z;
+            m_colorBuffer[idx] = color;
+        }
+    }
+
+    void Context::putPixel(const vec3i& screenPos, const vec3& color)
     {
         putPixel(screenPos.x, screenPos.y, color);
+    }
+
+    void Context::putPixelDepth(const vec3i& pos, const vec3& color)
+    {
+        putPixelDepth(pos.x, pos.y, pos.z, color);
     }
 
     void Context::putLine(int startX, int endX, int y, const vec3& color)
@@ -163,10 +205,30 @@ namespace sgl
         std::fill(startIt, endIt, color);
     }
 
-    void Context::putLine(const vec2i& start, const vec2i end, const vec3& color)
+    void Context::putLineDepth(int startX, int endX, int y, float startZ, float endZ, const vec3& color)
+    {
+        assert(startX <= endX && y >= 0 && y < m_height);
+        startX = std::max(startX, 0);
+        endX = std::min(endX, static_cast<int>(m_width));
+
+        float zStep = (endZ-startZ)/(endX - startX);
+        float z = startZ;
+        for (int i = startX; i < endX; ++i)
+        {
+            putPixelDepth(i, y, z, color);
+            z += zStep;
+        }
+    }
+
+    void Context::putLine(const vec3i& start, const vec3i& end, const vec3& color)
     {
         assert(start.y == end.y);
         putLine(start.x, end.x, start.y, color);
+    }
+
+    void Context::putLineDepth(const vec3i& start, const vec3i& end, const vec3& color)
+    {
+        putLineDepth(start.x, end.x, start.y, start.z, end.z, color);
     }
 
     void Context::beginDrawing(uint32_t elementType) 
@@ -271,40 +333,77 @@ namespace sgl
             case SGL_POLYGON:   // Draw polygon the same way as a line loop
                 if (m_vertexBuffer.size() > 2)
                 {
-                    if (m_areaMode == SGL_POINT)
+                    switch (m_areaMode)
                     {
-                        for (int i = 0; i < vertexCount; ++i)
+                        case SGL_POINT:
                         {
-                            vec3 p = m_vertexBuffer[i];
-                            drawPoint(p);
+                            for (int i = 0; i < vertexCount; ++i)
+                            {
+                                vec3 p = m_vertexBuffer[i];
+                                drawPoint(p);
+                            }
+                            break;
                         }
-                    }
-                    else 
-                    {
-                        for (int i = 0; i < vertexCount; ++i)
+                        case SGL_LINE:
                         {
-                            vec3 p1 = m_vertexBuffer[i];
-                            vec3 p2 = m_vertexBuffer[(i+1) % vertexCount];
-                            drawLine(p1, p2);
+                            for (int i = 0; i < vertexCount; ++i)
+                            {
+                                vec3 p1 = m_vertexBuffer[i];
+                                vec3 p2 = m_vertexBuffer[(i+1) % vertexCount];
+                                drawLine(p1, p2);
+                            }
+                            break;
                         }
-                    }
-                    if (m_areaMode == SGL_FILL) // Fill if the appropriate fill mode is selected
-                    {
-                        fill(m_vertexBuffer);
+                        case SGL_FILL:
+                        {
+                            m_fillFunc(m_vertexBuffer);
+                            break;
+                        }
                     }
                 }
                 break;
             case SGL_TRIANGLES:
-                for (int i = 2; i < vertexCount; ++i)
+                switch (m_areaMode)
                 {
-                    vec4 p1 = m_vertexBuffer[i-2];
-                    vec4 p2 = m_vertexBuffer[i-1];
-                    vec4 p3 = m_vertexBuffer[i];
-                    drawLine(p1, p2);
-                    drawLine(p2, p3);
-                    drawLine(p3, p1);
-                    fill({p1, p2, p3});
+                    case SGL_POINT:
+                    {
+                        for (int i = 2; i < vertexCount; ++i)
+                        {
+                            vec4 p1 = m_vertexBuffer[i-2];
+                            vec4 p2 = m_vertexBuffer[i-1];
+                            vec4 p3 = m_vertexBuffer[i];
+                            drawPoint(p1);
+                            drawPoint(p2);
+                            drawPoint(p3);                         
+                        }
+                        break;
+                    }
+                    case SGL_LINE:
+                    {
+                        for (int i = 2; i < vertexCount; ++i)
+                        {
+                            vec4 p1 = m_vertexBuffer[i-2];
+                            vec4 p2 = m_vertexBuffer[i-1];
+                            vec4 p3 = m_vertexBuffer[i];
+                            drawLine(p1, p2);
+                            drawLine(p2, p3);
+                            drawLine(p3, p1);    
+                        }
+                        break;
+                    }
+                    case SGL_FILL:
+                    {
+                        for (int i = 2; i < vertexCount; ++i)
+                        {
+                            vec4 p1 = m_vertexBuffer[i-2];
+                            vec4 p2 = m_vertexBuffer[i-1];
+                            vec4 p3 = m_vertexBuffer[i];
+                            m_fillFunc({p1, p2, p3});
+                        }
+                        break;
+                    }
                 }
+                
             default:
                 assert(false); // Not implemented
                 break;
@@ -348,26 +447,38 @@ namespace sgl
         p = 3 - 2*radius;
         fourX = 0;
         fourY = 4*radius;
+
+        std::function putLineFunc = [&](const vec3i& p1, const vec3i& p2, const vec3& color) { putLine(p1, p2, color); };
+        std::function putPixelFunc = [&](const vec3i& p, const vec3& color) { putPixel(p, color); };
+        if (m_features.test(SGL_DEPTH_TEST))
+        {
+            putLineFunc = [&](const vec3i& p1, const vec3i& p2, const vec3& color) { putLineDepth(p1, p2, color); };
+            putPixelFunc = [&](const vec3i& p, const vec3& color) { putPixelDepth(p, color); };
+        }
+
+        std::function putPixels = [&]() { 
+            putPixelFunc(vec3i( x+c.x,  y+c.y, c.z), m_drawColor);
+            putPixelFunc(vec3i( x+c.x, -y+c.y, c.z), m_drawColor);
+            putPixelFunc(vec3i(-x+c.x,  y+c.y, c.z), m_drawColor);
+            putPixelFunc(vec3i(-x+c.x, -y+c.y, c.z), m_drawColor);
+            putPixelFunc(vec3i( y+c.x,  x+c.y, c.z), m_drawColor);
+            putPixelFunc(vec3i( y+c.x, -x+c.y, c.z), m_drawColor);
+            putPixelFunc(vec3i(-y+c.x,  x+c.y, c.z), m_drawColor);
+            putPixelFunc(vec3i(-y+c.x, -x+c.y, c.z), m_drawColor);
+        };
+        if (m_areaMode == SGL_FILL)
+        {
+            putPixels = [&]() {
+                putLineFunc(vec3i(c.x-x, c.y + y, c.z), vec3i(c.x + x, c.y + y, c.z), m_drawColor);
+                putLineFunc(vec3i(c.x-x, c.y - y, c.z), vec3i(c.x + x, c.y - y, c.z), m_drawColor);
+                putLineFunc(vec3i(c.x-y, c.y + x, c.z), vec3i(c.x + y, c.y + x, c.z), m_drawColor);
+                putLineFunc(vec3i(c.x-y, c.y - x, c.z), vec3i(c.x + y, c.y - x, c.z), m_drawColor);
+            };
+        }
+
         while (x <= y)
         {
-            if (m_areaMode == SGL_FILL)
-            {
-                putLine(c.x - x, c.x + x, c.y + y, m_drawColor);
-                putLine(c.x - x, c.x + x, c.y - y, m_drawColor);
-                putLine(c.x - y, c.x + y, c.y + x, m_drawColor);
-                putLine(c.x - y, c.x + y, c.y - x, m_drawColor);
-            }
-            else 
-            {
-                putPixel( x+c.x,  y+c.y, m_drawColor);
-                putPixel( x+c.x, -y+c.y, m_drawColor);
-                putPixel(-x+c.x,  y+c.y, m_drawColor);
-                putPixel(-x+c.x, -y+c.y, m_drawColor);
-                putPixel( y+c.x,  x+c.y, m_drawColor);
-                putPixel( y+c.x, -x+c.y, m_drawColor);
-                putPixel(-y+c.x,  x+c.y, m_drawColor);
-                putPixel(-y+c.x, -x+c.y, m_drawColor);
-            }
+            putPixels();
             if (p > 0)
             {
                 p -= fourY + 4;
@@ -441,11 +552,30 @@ namespace sgl
 
     void Context::drawPoint(float x, float y, float z) 
     {
+        bool isDepthTest = m_features.test(SGL_DEPTH_TEST);
         float halfSize = m_pointSize * 0.5;
+
+        if (isDepthTest)
+        {
+            assert(x >= 0 && x < m_width && y >= 0 && y < m_height);
+            int ix = static_cast<int>(x);
+            int iy = static_cast<int>(y);
+            int idx = point2idx(ix, iy);
+            if (m_depthBuffer[idx] < z)
+            {
+                return;
+            }
+            else
+            {
+                m_depthBuffer[idx] = z;
+            }
+        }
+
         for (int yPixel = std::max(static_cast<int>(y-halfSize), 0); yPixel < std::min(static_cast<uint32_t>(y+halfSize), m_height); ++yPixel)
         {
             uint32_t xPixelStart = std::max(static_cast<int>(x-halfSize), 0);
             uint32_t xPixelEnd = x + halfSize;
+
             putLine(xPixelStart, xPixelEnd, yPixel, m_drawColor);
         }
     }
@@ -520,7 +650,83 @@ namespace sgl
                 edge.x += edge.inverseSlope;
             }
         }
+    }
 
+    void Context::fillDepth(const std::vector<vec4>& vertices)
+    {
+        struct Edge
+        {
+            int yMax;
+            float x;
+            float inverseSlope;
+            float z;
+            float zSlope;
+        };
+
+        auto yComparator = [](const auto& v1, const auto& v2) { return v1.y < v2.y; };
+        auto [min, max] = std::minmax_element(vertices.begin(), vertices.end(), yComparator);
+        assert(min != vertices.end() && max != vertices.end());
+        int minY = (*min).y;
+        int maxY = (*max).y;
+
+        std::vector<std::vector<Edge>> edgeTable(maxY - minY + 1);
+
+        for (int i = 0; i < vertices.size(); ++i)
+        {
+            vec3i p1 = vertices[i];
+            vec3i p2 = vertices[(i+1) % vertices.size()];
+
+            if (p1.y == p2.y)
+            {
+                continue;
+            }
+
+            if (p1.y > p2.y)
+            {
+                std::swap(p1, p2);
+            }
+
+            Edge e;
+            e.yMax = p2.y;
+            e.x = p1.x;
+            e.inverseSlope = static_cast<float>(p2.x-p1.x) / (p2.y-p1.y);
+            e.z = p1.z;
+            e.zSlope = static_cast<float>(p2.z-p1.z) / (p2.y-p1.y);
+            edgeTable[p1.y - minY].emplace_back(e);
+        }
+
+        std::vector<Edge> activeTable;
+
+        for (int y = minY; y < maxY; ++y)
+        {
+            if (y - minY < edgeTable.size())
+            {
+                auto& table = edgeTable[y - minY];
+                activeTable.insert(activeTable.end(), table.begin(), table.end());
+            }
+
+            activeTable.erase(std::remove_if(activeTable.begin(), activeTable.end(), [y](const Edge& edge) { return edge.yMax <= y; }), activeTable.end());
+
+            std::sort(activeTable.begin(), activeTable.end(), [](const auto& e1, const auto& e2) { return e1.x < e2.x; });
+            
+            for (int i = 1; i < activeTable.size(); i += 2)
+            {
+                int startX = static_cast<int>(activeTable[i-1].x);
+                int endX = static_cast<int>(activeTable[i].x);
+
+                float startZ = activeTable[i-1].z;
+                float endZ = activeTable[i].z;
+                
+                // putLineDepth(vec3i(startX, y, startZ), vec3i(endX, y, endZ), m_drawColor);
+                putLineDepth(startX, endX, y, startZ, endZ, m_drawColor);
+            }
+
+            for (auto& edge : activeTable)
+            {
+                edge.x += edge.inverseSlope;
+                edge.z += edge.zSlope;
+            }
+        }
     }
 
     int Context::getId() const

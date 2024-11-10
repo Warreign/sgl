@@ -3,6 +3,7 @@
 #include "math/matrix.h"
 
 #include <bitset>
+#include <functional>
 #include <vector>
 #include <cstdint>
 
@@ -60,15 +61,21 @@ public:
 private:
 
     inline void putPixel(int x, int y, const vec3& color);
-    inline void putPixel(const vec2i& screenPos, const vec3& color);
-    inline void putLine(int startX, int endX, int y, const vec3& color);
-    inline void putLine(const vec2i& start, const vec2i end, const vec3& color);
+    inline void putPixelDepth(int x, int y, int z, const vec3& color);
+    inline void putPixel(const vec3i& screenPos, const vec3& color);
+    inline void putPixelDepth(const vec3i& pos, const vec3& color);
 
-    void drawLine(vec2 p1, vec2 p2);
+    inline void putLine(int startX, int endX, int y, const vec3& color);
+    inline void putLineDepth(int startX, int endX, int y, float startZ, float endZ, const vec3& color);
+    inline void putLine(const vec3i& start, const vec3i& end, const vec3& color);
+    inline void putLineDepth(const vec3i& start, const vec3i& end, const vec3& color);
+
+    void drawLine(vec3 p1, vec3 p2);
     void drawPoint(float x, float y, float z);
     void drawPoint(vec3 pt);
 
     void fill(const std::vector<vec4>& vertices);
+    void fillDepth(const std::vector<vec4>& vertices);
 
     int point2idx(int x, int y) const;
 
@@ -86,7 +93,7 @@ private:
 
     float m_pointSize;
 
-    std::bitset<sizeof(uint32_t)> m_features;
+    std::bitset<sizeof(uint32_t)*8> m_features;
 
     // Matrices
     std::vector<mat4> m_modelStack;
@@ -100,8 +107,9 @@ private:
     std::vector<vec3> m_colorBuffer;
 
     // Depth buffer
-    std::vector<uint8_t> m_depthBuffer;
+    std::vector<uint32_t> m_depthBuffer;
     uint32_t m_areaMode;
+    std::function<void(const std::vector<vec4>&)> m_fillFunc;
 
     // Vertex data
     std::vector<vec4> m_vertexBuffer;

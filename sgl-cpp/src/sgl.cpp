@@ -440,7 +440,7 @@ void sglEnable(sglEEnableFlags cap)
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
-    // context->enableFeatures(static_cast<uint32_t>(cap));
+    context->enableFeatures(static_cast<uint32_t>(cap));
 }
 
 void sglDisable(sglEEnableFlags cap)
