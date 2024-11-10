@@ -321,7 +321,15 @@ namespace sgl
 
     void Context::drawCircle(vec3 center, float radius, bool fill) 
     {
-        vec3i c(m_PVM * vec4(center, 1));
+        vec3 transformedCenter(m_PVM * vec4(center, 1));
+
+        if (m_areaMode == SGL_POINT)
+        {
+            drawPoint(transformedCenter);
+            return;
+        }
+
+        vec3i c = transformedCenter;
 
         const mat4& mv = m_PVM;
         auto mv00 = mv[0][0];
@@ -415,16 +423,28 @@ namespace sgl
 
         float dtheta = (toRad-fromRad) / steps;
 
+        bool isFilled = m_areaMode == SGL_FILL;
+        std::vector<vec4> fillVertices;
+
         beginDrawing(SGL_LINE_STRIP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = fromRad + i * dtheta;
             float x = center.x + radius * std::cos(theta);
             float y = center.y + radius * std::sin(theta);
-            addVertex(vec4(x, y, 0, 1));
+            addVertex(vec4(x, y, center.z, 1));
+        }
+        if (isFilled)
+        {
+            fillVertices = m_vertexBuffer;
         }
         drawBuffer();
 
+        if (isFilled)
+        {
+            fillVertices.push_back(m_PVM * vec4(center, 1));
+            fill(fillVertices);
+        }
     }
 
     void Context::drawPoint(float x, float y, float z) 

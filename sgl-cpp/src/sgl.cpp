@@ -356,7 +356,7 @@ void sglFrustum(float left, float right, float bottom, float top, float near, fl
         return;
     }
     sgl::mat4& current = context->getCurrentMat();
-    current = current * sgl::perspective(left, right, bottom, top, near, far);
+    current = current * sgl::frustum(left, right, bottom, top, near, far);
     context->updatePVM();
 }
 
@@ -440,7 +440,7 @@ void sglEnable(sglEEnableFlags cap)
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
-    context->enableFeatures(static_cast<uint32_t>(cap));
+    // context->enableFeatures(static_cast<uint32_t>(cap));
 }
 
 void sglDisable(sglEEnableFlags cap)

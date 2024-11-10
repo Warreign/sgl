@@ -79,9 +79,12 @@ namespace sgl
                     0,                  0,                  0,                  1);
     }
 
-    constexpr mat4 perspective(float left, float right, float bottom, float top, float near, float far)
+    constexpr mat4 frustum(float left, float right, float bottom, float top, float near, float far)
     {
-        return mat4();
+        return mat4((2*near)/(right-left),  0,                      0,                          -near*(right+left)/(right-left),
+                    0,                      (2*near)/(top-bottom),  0,                          -near*(top+bottom)/(top-bottom),
+                    0,                      0,                      -(far+near)/(far-near),     2*far*near/(near-far),
+                    0,                      0,                      -1,                         0);
     }
 
     constexpr mat4 viewport(int x, int y, int width, int height)
