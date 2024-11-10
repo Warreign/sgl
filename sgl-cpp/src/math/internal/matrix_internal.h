@@ -2,15 +2,14 @@
 
 #include "vector_internal.h"
 
-#include <immintrin.h>
-#include <pmmintrin.h>
 
 #include <array>
 #include <type_traits>
 #include <ostream>
-#include <xmmintrin.h>
 
 #ifdef SGL_SIMD
+#include <immintrin.h>
+#include <pmmintrin.h>
 #pragma GCC target("sse3")
 #pragma GCC target("avx")
 #endif
