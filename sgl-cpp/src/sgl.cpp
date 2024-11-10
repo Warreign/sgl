@@ -232,6 +232,7 @@ void sglLoadIdentity(void)
     }
     sgl::mat4& current = context->getCurrentMat();
     current = sgl::mat4::identity;
+    context->updatePVM();
 }
 
 void sglLoadMatrix(const float *matrix)
@@ -246,6 +247,7 @@ void sglLoadMatrix(const float *matrix)
     sgl::mat4& current = context->getCurrentMat();
     sgl::mat4 newMatrix(matrix);
     current = newMatrix;
+    context->updatePVM();
 }
 
 void sglMultMatrix(const float *matrix)
@@ -260,6 +262,7 @@ void sglMultMatrix(const float *matrix)
     sgl::mat4& current = context->getCurrentMat();
     sgl::mat4 sglMatrix(matrix);
     current = current * sglMatrix;
+    context->updatePVM();
 }
 
 void sglTranslate(float x, float y, float z)
@@ -274,6 +277,7 @@ void sglTranslate(float x, float y, float z)
     sgl::mat4& current = context->getCurrentMat();
     sgl::mat4 translation = sgl::translate(x, y, z);
     current = current * translation;
+    context->updatePVM();
 }
 
 void sglScale(float scalex, float scaley, float scalez)
@@ -287,6 +291,7 @@ void sglScale(float scalex, float scaley, float scalez)
     }
     sgl::mat4& current = context->getCurrentMat();
     current = current * sgl::scale(scalex, scaley, scalez);;
+    context->updatePVM();
 }
 
 void sglRotate2D(float angle, float centerx, float centery)
@@ -300,6 +305,7 @@ void sglRotate2D(float angle, float centerx, float centery)
     }
     sgl::mat4& current = context->getCurrentMat();
     current = current * sgl::translate(centerx, centery, 0) * sgl::rotateZ(angle) * sgl::translate(-centerx, -centery, 0);
+    context->updatePVM();
 }
 
 void sglRotateY(float angle)
@@ -313,6 +319,7 @@ void sglRotateY(float angle)
     }
     sgl::mat4& current = context->getCurrentMat();
     current = current * sgl::rotateY(angle);
+    context->updatePVM();
 }
 
 void sglOrtho(float left, float right, float bottom, float top, float near, float far)
@@ -331,6 +338,7 @@ void sglOrtho(float left, float right, float bottom, float top, float near, floa
     }
     sgl::mat4& current = context->getCurrentMat();
     current = current * sgl::ortho(left, right, bottom, top, near, far);
+    context->updatePVM();
 }
 
 void sglFrustum(float left, float right, float bottom, float top, float near, float far)
@@ -349,6 +357,7 @@ void sglFrustum(float left, float right, float bottom, float top, float near, fl
     }
     sgl::mat4& current = context->getCurrentMat();
     current = current * sgl::perspective(left, right, bottom, top, near, far);
+    context->updatePVM();
 }
 
 void sglViewport(int x, int y, int width, int height)
@@ -366,6 +375,7 @@ void sglViewport(int x, int y, int width, int height)
         return;
     }
     context->setViewport(x, y, width, height);
+    context->updatePVM();
 }
 
 void sglClearColor(float r, float g, float b, float alpha)
@@ -393,7 +403,20 @@ void sglColor3f(float r, float g, float b)
 }
 
 void sglAreaMode(sglEAreaMode mode)
-{
+{    
+    sgl::SglController& m = sgl::SglController::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    if (mode > SGL_FILL)
+    {
+        m.setError(SGL_INVALID_ENUM);
+        return;
+    }
+    context->setAreaMode(mode);
 }
 
 void sglPointSize(float size)

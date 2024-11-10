@@ -43,13 +43,12 @@ public:
     int getWidth() const;
     int getHeight() const;
 
-    void putPixel(int x, int y, const vec3& color);
-    void putPixel(const vec2i& screenPos, const vec3& color);
-
     void beginDrawing(uint32_t elementType);
     void addVertex(const vec4& vertex, bool applyPVM = true);
     void addVertex(const vec4& vertex, const mat4& matrix);
     void drawBuffer();
+
+    void setAreaMode(uint32_t areaMode);
     
     void drawCircle(vec3 center, float radius, bool fill = false);
     void drawCirclePolar(vec3 center, float radius);
@@ -60,8 +59,16 @@ public:
 
 private:
 
+    inline void putPixel(int x, int y, const vec3& color);
+    inline void putPixel(const vec2i& screenPos, const vec3& color);
+    inline void putLine(int startX, int endX, int y, const vec3& color);
+    inline void putLine(const vec2i& start, const vec2i end, const vec3& color);
+
     void drawLine(vec2 p1, vec2 p2);
     void drawPoint(float x, float y, float z);
+    void drawPoint(vec3 pt);
+
+    void fill(const std::vector<vec4>& vertices);
 
     int point2idx(int x, int y) const;
 
@@ -94,6 +101,7 @@ private:
 
     // Depth buffer
     std::vector<uint8_t> m_depthBuffer;
+    uint32_t m_areaMode;
 
     // Vertex data
     std::vector<vec4> m_vertexBuffer;

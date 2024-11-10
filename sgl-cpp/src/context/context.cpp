@@ -39,6 +39,7 @@ namespace sgl
           m_drawColor(0.0, 0.0, 0.0),
           m_colorBuffer(width * height, sgl::vec3(0.0, 0.0, 0.0)),
           m_depthBuffer(width * height, 0),
+          m_areaMode(SGL_LINE),
           m_elementType(SGL_LAST_ELEMENT_TYPE),
           m_PVM(mat4::identity)
     {
@@ -152,12 +153,27 @@ namespace sgl
         putPixel(screenPos.x, screenPos.y, color);
     }
 
+    void Context::putLine(int startX, int endX, int y, const vec3& color)
+    {
+        assert(startX <= endX && y >= 0 && y < m_height);
+        startX = std::max(startX, 0);
+        endX = std::min(endX, static_cast<int>(m_width));
+        auto startIt = m_colorBuffer.begin() + point2idx(startX, y);
+        auto endIt = m_colorBuffer.begin() + point2idx(endX, y);
+        std::fill(startIt, endIt, color);
+    }
+
+    void Context::putLine(const vec2i& start, const vec2i end, const vec3& color)
+    {
+        assert(start.y == end.y);
+        putLine(start.x, end.x, start.y, color);
+    }
+
     void Context::beginDrawing(uint32_t elementType) 
     {
         m_elementType = elementType;
         m_isDrawing = true;
         m_vertexBuffer.clear();
-        // m_PVM = m_viewport * getProjection() * getModelView();
         updatePVM();
     }
 
@@ -192,38 +208,124 @@ namespace sgl
                     drawPoint(vert.x, vert.y, vert.z);
                 }
                 break;
+
             case SGL_LINES:
                 for (int i = 1; i < m_vertexBuffer.size(); i += 2)
                 {
-                    vec2 p1 = m_vertexBuffer[i-1];
-                    vec2 p2 = m_vertexBuffer[i];
-                    drawLine(p1, p2);
+                    vec3 p1 = m_vertexBuffer[i-1];
+                    vec3 p2 = m_vertexBuffer[i];
+                    if (m_areaMode == SGL_POINT)
+                    {
+                        drawPoint(p1);
+                        drawPoint(p2);
+                    }
+                    else 
+                    {
+                        drawLine(p1, p2);
+                    }
                 }
                 break;
+
             case SGL_LINE_STRIP:
                 for (int i = 1; i < m_vertexBuffer.size(); ++i)
                 {
-                    vec2 p1 = m_vertexBuffer[i-1];
-                    vec2 p2 = m_vertexBuffer[i];
-                    drawLine(p1, p2);
+                    vec3 p1 = m_vertexBuffer[i-1];
+                    vec3 p2 = m_vertexBuffer[i];
+                    if (m_areaMode == SGL_POINT)
+                    {
+                        drawPoint(p1);
+                        if (m_vertexBuffer.size()-1 == i)
+                        {
+                            drawPoint(p2);
+                        }
+                    }
+                    else 
+                    {
+                        drawLine(p1, p2);
+                    }
                 }
                 break;
+
             case SGL_LINE_LOOP:
                 for (int i = 1; i < m_vertexBuffer.size(); ++i)
                 {
-                    vec2 p1 = m_vertexBuffer[i-1];
-                    vec2 p2 = m_vertexBuffer[i];
-                    drawLine(p1, p2);
+                    vec3 p1 = m_vertexBuffer[i-1];
+                    vec3 p2 = m_vertexBuffer[i];
+                    if (m_areaMode == SGL_POINT)
+                    {
+                        drawPoint(p1);
+                    }
+                    else 
+                    {
+                        drawLine(p1, p2);
+                    }
                 }
                 if (m_vertexBuffer.size() > 2)
                 {
-                    drawLine(m_vertexBuffer.back(), m_vertexBuffer.front());
+                    if (m_areaMode == SGL_POINT)
+                    {
+                        drawPoint(m_vertexBuffer.back());
+                    }
+                    else
+                    {
+                        drawLine(m_vertexBuffer.back(), m_vertexBuffer.front());
+                    }
                 }
+                break;
+
+            case SGL_POLYGON:   // Draw in the same way for both polygons at the beginning
+                if (m_vertexBuffer.size() > 2)
+                {
+                    for (int i = 1; i < m_vertexBuffer.size(); ++i)
+                    {
+                        vec3 p1 = m_vertexBuffer[i-1];
+                        vec3 p2 = m_vertexBuffer[i];
+                        if (m_areaMode == SGL_POINT)
+                        {
+                            drawPoint(p1);
+                        }
+                        else 
+                        {
+                            drawLine(p1, p2);
+                        }
+                    }
+                    if (m_areaMode == SGL_POINT)
+                    {
+                        drawPoint(m_vertexBuffer.back());
+                    }
+                    else
+                    {
+                        drawLine(m_vertexBuffer.back(), m_vertexBuffer.front());
+                    }
+                    if (m_areaMode == SGL_FILL) // Fill if the appropriate fill mode is selected
+                    {
+                        fill(m_vertexBuffer);
+                    }
+                }
+                break;
+            case SGL_TRIANGLES:
+                for (int i = 2; i < m_vertexBuffer.size(); ++i)
+                {
+                    vec4 p1 = m_vertexBuffer[i-2];
+                    vec4 p2 = m_vertexBuffer[i-1];
+                    vec4 p3 = m_vertexBuffer[i];
+                    drawLine(p1, p2);
+                    drawLine(p2, p3);
+                    drawLine(p3, p1);
+                    fill({p1, p2, p3});
+                }
+            default:
+                assert(false); // Not implemented
                 break;
         }
         m_isDrawing = false;
         m_elementType = SGL_LAST_ELEMENT_TYPE;
         m_vertexBuffer.clear();
+    }
+
+    void Context::setAreaMode(uint32_t areaMode)
+    {
+        m_areaMode = areaMode;
     }
 
     void Context::drawCircle(vec3 center, float radius, bool fill) 
@@ -233,8 +335,12 @@ namespace sgl
         const mat4& mv = m_PVM;
         auto mv00 = mv[0][0];
         auto mv10 = mv[1][0];
-        auto mv20 = mv[2][0];
-        float scale = std::sqrt(mv00 * mv00 + mv10 * mv10 + mv20 * mv20);
+        
+        auto mv01 = mv[0][1];
+        auto mv11 = mv[1][1];
+
+        float scale = std::sqrt(std::abs(mv00 * mv11 - mv01 * mv10));
+
         radius *= scale;
         
         int x, y, p, fourX, fourY;
@@ -245,15 +351,24 @@ namespace sgl
         fourY = 4*radius;
         while (x <= y)
         {
-
-            putPixel(x+c.x, y+c.y, m_drawColor);
-            putPixel(x+c.x, -y+c.y, m_drawColor);
-            putPixel(-x+c.x, y+c.y, m_drawColor);
-            putPixel(-x+c.x, -y+c.y, m_drawColor);
-            putPixel(y+c.x, x+c.y, m_drawColor);
-            putPixel(y+c.x, -x+c.y, m_drawColor);
-            putPixel(-y+c.x, x+c.y, m_drawColor);
-            putPixel(-y+c.x, -x+c.y, m_drawColor);
+            if (m_areaMode == SGL_FILL)
+            {
+                putLine(c.x - x, c.x + x, c.y + y, m_drawColor);
+                putLine(c.x - x, c.x + x, c.y - y, m_drawColor);
+                putLine(c.x - y, c.x + y, c.y + x, m_drawColor);
+                putLine(c.x - y, c.x + y, c.y - x, m_drawColor);
+            }
+            else 
+            {
+                putPixel( x+c.x,  y+c.y, m_drawColor);
+                putPixel( x+c.x, -y+c.y, m_drawColor);
+                putPixel(-x+c.x,  y+c.y, m_drawColor);
+                putPixel(-x+c.x, -y+c.y, m_drawColor);
+                putPixel( y+c.x,  x+c.y, m_drawColor);
+                putPixel( y+c.x, -x+c.y, m_drawColor);
+                putPixel(-y+c.x,  x+c.y, m_drawColor);
+                putPixel(-y+c.x, -x+c.y, m_drawColor);
+            }
             if (p > 0)
             {
                 p -= fourY + 4;
@@ -328,10 +443,81 @@ namespace sgl
         {
             uint32_t xPixelStart = std::max(static_cast<int>(x-halfSize), 0);
             uint32_t xPixelEnd = std::min(static_cast<uint32_t>(x+halfSize), m_width);
-            auto startIt = std::next(m_colorBuffer.begin(), point2idx(xPixelStart, yPixel));
-            auto endIt = std::next(m_colorBuffer.begin(), point2idx(xPixelEnd, yPixel));
-            std::fill(startIt, endIt, m_drawColor);
+            putLine(xPixelStart, xPixelEnd, yPixel, m_drawColor);
         }
+    }
+
+    void Context::drawPoint(vec3 pt)
+    {
+        drawPoint(pt.x, pt.y, pt.z);
+    }
+
+    void Context::fill(const std::vector<vec4>& vertices)
+    {
+        struct Edge
+        {
+            int yMax;
+            float x;
+            float inverseSlope;
+        };
+
+        auto yComparator = [](const auto& v1, const auto& v2) { return v1.y < v2.y; };
+        auto [min, max] = std::minmax_element(vertices.begin(), vertices.end(), yComparator);
+        assert(min != vertices.end() && max != vertices.end());
+        int minY = (*min).y;
+        int maxY = (*max).y;
+
+        std::vector<std::vector<Edge>> edgeTable(maxY - minY + 1);
+
+        for (int i = 0; i < vertices.size(); ++i)
+        {
+            vec3i p1 = vertices[i];
+            vec3i p2 = vertices[(i+1) % vertices.size()];
+
+            if (p1.y == p2.y)
+            {
+                continue;
+            }
+
+            if (p1.y > p2.y)
+            {
+                std::swap(p1, p2);
+            }
+
+            Edge e;
+            e.yMax = p2.y;
+            e.x = p1.x;
+            e.inverseSlope = static_cast<float>(p2.x-p1.x) / static_cast<float>(p2.y-p1.y);
+            edgeTable[p1.y - minY].emplace_back(e);
+        }
+
+        std::vector<Edge> activeTable;
+
+        for (int y = minY; y < maxY; ++y)
+        {
+            if (y - minY < edgeTable.size())
+            {
+                auto& table = edgeTable[y - minY];
+                activeTable.insert(activeTable.end(), table.begin(), table.end());
+            }
+
+            activeTable.erase(std::remove_if(activeTable.begin(), activeTable.end(), [y](const Edge& edge) { return edge.yMax <= y; }), activeTable.end());
+
+            std::sort(activeTable.begin(), activeTable.end(), [](const auto& e1, const auto& e2) { return e1.x < e2.x; });
+
+            for (int i = 1; i < activeTable.size(); i += 2)
+            {
+                int startX = static_cast<int>(activeTable[i-1].x);
+                int endX = static_cast<int>(activeTable[i].x);
+                putLine(startX, endX, y, m_drawColor);
+            }
+
+            for (auto& edge : activeTable)
+            {
+                edge.x += edge.inverseSlope;
+            }
+        }
+
     }
 
     int Context::getId() const
