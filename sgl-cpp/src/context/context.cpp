@@ -424,9 +424,8 @@ namespace sgl
         float dtheta = (toRad-fromRad) / steps;
 
         bool isFilled = m_areaMode == SGL_FILL;
-        std::vector<vec4> fillVertices;
 
-        beginDrawing(SGL_LINE_STRIP);
+        beginDrawing(isFilled ? SGL_POLYGON : SGL_LINE_STRIP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = fromRad + i * dtheta;
@@ -436,15 +435,10 @@ namespace sgl
         }
         if (isFilled)
         {
-            fillVertices = m_vertexBuffer;
+            addVertex(vec4(center, 1));
         }
         drawBuffer();
 
-        if (isFilled)
-        {
-            fillVertices.push_back(m_PVM * vec4(center, 1));
-            fill(fillVertices);
-        }
     }
 
     void Context::drawPoint(float x, float y, float z) 
