@@ -402,15 +402,13 @@ namespace sgl
         int steps = 40;
         float dtheta = 2 * M_PI / steps;
 
-        vec2i c(center);
-
         beginDrawing(m_areaMode == SGL_FILL ? SGL_POLYGON : SGL_LINE_LOOP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = i * dtheta;
             float x = center.x + a * std::cos(theta);
             float y = center.y + b * std::sin(theta);
-            addVertex(vec4(x, y, 0, 1));
+            addVertex(vec4(x, y, center.z, 1));
         }
         drawBuffer();
     }
