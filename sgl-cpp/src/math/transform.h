@@ -52,18 +52,18 @@ namespace sgl
 
     constexpr mat4 rotateZ(float angle)
     {
-        return mat4(cos(angle), -sin(angle), 0, 0,
-                    sin(angle),  cos(angle), 0, 0,
-                    0,                    0,                  1, 0,
-                    0,                    0,                  0, 1);
+        return mat4(cos(angle), -sin(angle),    0, 0,
+                    sin(angle),  cos(angle),    0, 0,
+                    0,              0,                 1, 0,
+                    0,              0,                 0, 1);
     }
 
     constexpr mat4 rotateY(float angle)
     {
-        return mat4(cos(angle), 0, -sin(angle), 0,
-                    0,                   1, 0,                   0,
-                    sin(angle), 0,  cos(angle), 0,
-                    0,                   0, 0,                   0);
+        return mat4(cos(angle), 0,  -sin(angle),    0,
+                    0,              1,  0,                  0,
+                    sin(angle), 0,  cos(angle),     0,
+                    0,              0,  0,                  1);
     }
 
     constexpr mat4 rotate(const vec3& axis, float angle)
