@@ -180,8 +180,8 @@ namespace sgl
     void Context::addVertex(const vec4& vertex, bool applyPVM) 
     {
         assert(m_isDrawing);
-        if (applyPVM) m_vertexBuffer.push_back(m_PVM * vertex);
-        else m_vertexBuffer.push_back(vertex);
+        vec4 transformed = m_PVM * vertex;
+        m_vertexBuffer.push_back(transformed / transformed.w);
     }
 
     void Context::addVertex(const vec4& vertex, const mat4& matrix) 
