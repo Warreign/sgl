@@ -19,7 +19,7 @@ option(USE_SIMD "Enable usage of SIMD instructions for matrix multiplication" ON
 # Set general compiler flags.
 if (WIN32)
   add_definitions(-D__WINDOWS__ -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -mavx2 -Wall")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3 -mavx2 -Wall -Wno-unknown-pragmas -Wno-unused-function")
 endif (WIN32)
 
 if (APPLE)

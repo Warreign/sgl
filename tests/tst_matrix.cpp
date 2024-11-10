@@ -13,9 +13,6 @@ int main()
     sgl::vec3 v2 = {4, 5, 6};
     sgl::vec3 v3 = { 7, 8, 9};
 
-    sgl::mat3 m1 = sgl::mat3({1, 2, 3, 4, 5, 6, 7, 8, 9});
-    sgl::mat3 m2 = sgl::mat3( {v1, v2, v3} );
-
     sgl::mat3 identity = sgl::mat3::identity;
 
     assert(identity[0][0] == 1 && identity[1][1] == 1 && identity[2][2] == 1 );
@@ -71,8 +68,6 @@ int main()
     sgl::mat4 ptrm(static_cast<float*>(arr));
 
     std::cout << ptrm << std::endl;
-
-    const float* ptr = reinterpret_cast<const float*>(&sgl::mat4::identity[0]);
 
     sgl::mat4 mm1 = sgl::mat4::identity, mm2 = sgl::mat4::identity;
 

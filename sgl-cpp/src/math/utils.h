@@ -4,6 +4,14 @@
 
 #include <cmath>
 
+#ifdef SGL_SIMD
+#include <immintrin.h>
+#include <pmmintrin.h>
+#pragma GCC target("sse3")
+#pragma GCC target("avx")
+#endif
+
+
 namespace sgl 
 {
 
@@ -27,6 +35,24 @@ namespace math
         Vector<N, T> sub = p2 - p1;
         return std::sqrt(dotProduct(sub, sub));
     }
+
+#ifdef SGL_SIMD
+    template <size_t N, typename = std::enable_if_t<N <= 4>>
+    constexpr float dotProduct(const Vector<N, float> v1, const Vector<N, float>& v2)
+    {
+        Vector<4, float> v1full = v1;
+        Vector<4, float> v2full = v2;
+
+        __m128 a = _mm_loadu_ps(v1full.data_ptr());
+        __m128 b = _mm_loadu_ps(v2full.data_ptr());
+
+        __m128 mul = _mm_mul_ps(a, b);
+        __m128 sum = _mm_hadd_ps(mul, mul);
+        sum = _mm_hadd_ps(sum, sum);
+
+        return _mm_cvtss_f32(sum);
+    }
+#endif
 
 }
 
