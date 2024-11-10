@@ -93,6 +93,9 @@ namespace sgl
 
         template <size_t M, typename U, typename... Y, typename = std::enable_if_t<sizeof...(Y) == (M < N ? N - M : 0) && (std::is_arithmetic_v<Y> && ...)>>
         constexpr Vector(const Vector<M, U>& v, const Y& ... rest);
+
+        template <size_t M, typename U, typename = std::enable_if_t<M < N>>
+        constexpr Vector(const Vector<M, U>& v);
         
         // List constructors
         template <typename U>
