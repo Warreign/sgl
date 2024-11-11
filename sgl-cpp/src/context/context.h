@@ -61,14 +61,14 @@ public:
 private:
 
     inline void putPixel(int x, int y, const vec3& color);
-    inline void putPixelDepth(int x, int y, int z, const vec3& color);
-    inline void putPixel(const vec3i& screenPos, const vec3& color);
-    inline void putPixelDepth(const vec3i& pos, const vec3& color);
+    inline void putPixelDepth(int x, int y, float z, const vec3& color);
+    inline void putPixel(const vec3& pos, const vec3& color);
+    inline void putPixelDepth(const vec3& pos, const vec3& color);
 
     inline void putLine(int startX, int endX, int y, const vec3& color);
     inline void putLineDepth(int startX, int endX, int y, float startZ, float endZ, const vec3& color);
-    inline void putLine(const vec3i& start, const vec3i& end, const vec3& color);
-    inline void putLineDepth(const vec3i& start, const vec3i& end, const vec3& color);
+    inline void putLine(const vec3& start, const vec3& end, const vec3& color);
+    inline void putLineDepth(const vec3& start, const vec3& end, const vec3& color);
 
     void drawLine(vec3 p1, vec3 p2);
     void drawPoint(float x, float y, float z);
@@ -107,7 +107,7 @@ private:
     std::vector<vec3> m_colorBuffer;
 
     // Depth buffer
-    std::vector<uint32_t> m_depthBuffer;
+    std::vector<float> m_depthBuffer;
     uint32_t m_areaMode;
     std::function<void(const std::vector<vec4>&)> m_fillFunc;
 
