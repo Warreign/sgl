@@ -479,17 +479,21 @@ namespace sgl
         while (x <= y)
         {
             putPixels();
-            if (p > 0)
+            if (p <= 0)
             {
-                p -= fourY + 4;
+                p += fourX + 6;
+            }
+            else 
+            {
+                p += (fourX - fourY) + 10;
                 fourY -= 4;
                 --y;
             }
-            p += fourX + 6;
             fourX += 4;
             ++x;
         }
     }
+
     void Context::drawCirclePolar(vec3 center, float radius)
     {
         int steps = 40;
@@ -604,10 +608,10 @@ namespace sgl
 
         for (int i = 0; i < vertices.size(); ++i)
         {
-            vec3i p1 = vertices[i];
-            vec3i p2 = vertices[(i+1) % vertices.size()];
+            vec3 p1 = vertices[i];
+            vec3 p2 = vertices[(i+1) % vertices.size()];
 
-            if (p1.y == p2.y)
+            if (static_cast<int>(p1.y) == static_cast<int>(p2.y))
             {
                 continue;
             }
@@ -618,10 +622,10 @@ namespace sgl
             }
 
             Edge e;
-            e.yMax = p2.y;
+            e.yMax = static_cast<int>(p2.y);
             e.x = p1.x;
-            e.inverseSlope = static_cast<float>(p2.x-p1.x) / static_cast<float>(p2.y-p1.y);
-            edgeTable[p1.y - minY].emplace_back(e);
+            e.inverseSlope = (p2.x-p1.x) / (p2.y-p1.y);
+            edgeTable[static_cast<int>(p1.y) - minY].emplace_back(e);
         }
 
         std::vector<Edge> activeTable;
@@ -640,8 +644,8 @@ namespace sgl
 
             for (int i = 1; i < activeTable.size(); i += 2)
             {
-                int startX = static_cast<int>(activeTable[i-1].x);
-                int endX = static_cast<int>(activeTable[i].x);
+                int startX = std::floor(activeTable[i-1].x);
+                int endX = std::ceil(activeTable[i].x);
                 putLine(startX, endX, y, m_drawColor);
             }
 
@@ -676,7 +680,7 @@ namespace sgl
             vec3 p1 = vertices[i];
             vec3 p2 = vertices[(i+1) % vertices.size()];
 
-            if (p1.y == p2.y)
+            if (static_cast<int>(p1.y) == static_cast<int>(p2.y))
             {
                 continue;
             }
@@ -711,8 +715,8 @@ namespace sgl
             
             for (int i = 1; i < activeTable.size(); i += 2)
             {
-                int startX = static_cast<int>(activeTable[i-1].x);
-                int endX = static_cast<int>(activeTable[i].x);
+                int startX = std::floor(activeTable[i-1].x);
+                int endX = std::ceil(activeTable[i].x);
 
                 float startZ = activeTable[i-1].z;
                 float endZ = activeTable[i].z;
