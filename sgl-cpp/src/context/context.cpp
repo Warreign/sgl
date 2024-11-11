@@ -40,7 +40,7 @@ namespace sgl
           m_clearColor(0.0, 0.0, 0.0),
           m_drawColor(0.0, 0.0, 0.0),
           m_colorBuffer(width * height, sgl::vec3(0.0, 0.0, 0.0)),
-          m_depthBuffer(width * height, 1),
+          m_depthBuffer(width * height, std::numeric_limits<float>::max()),
           m_areaMode(SGL_LINE),
           m_fillFunc(std::bind(&Context::fill, this, std::placeholders::_1)),
           m_elementType(SGL_LAST_ELEMENT_TYPE),
@@ -62,7 +62,7 @@ namespace sgl
         }
         if (what & SGL_DEPTH_BUFFER_BIT)
         {
-            std::fill(m_depthBuffer.begin(), m_depthBuffer.end(), 1);
+            std::fill(m_depthBuffer.begin(), m_depthBuffer.end(), std::numeric_limits<float>::max());
         }
     }
 
