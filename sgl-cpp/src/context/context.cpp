@@ -34,7 +34,7 @@ namespace sgl
           m_width(width),
           m_height(height),
           m_isDrawing(false),
-          m_pointSize(4),
+          m_pointSize(1),
           m_viewport(mat4::identity),
           m_isModelActive(true),
           m_clearColor(0.0, 0.0, 0.0),
@@ -223,7 +223,7 @@ namespace sgl
     void Context::putLine(const vec3& start, const vec3& end, const vec3& color)
     {
         assert(start.y == end.y);
-        putLine(start.x, end.x, start.y, color);
+        putLine(std::floor(start.x), std::ceil(end.x), start.y, color);
     }
 
     void Context::putLineDepth(const vec3& start, const vec3& end, const vec3& color)
@@ -420,15 +420,15 @@ namespace sgl
 
     void Context::drawCircle(vec3 center, float radius, bool fill) 
     {
-        vec3 transformedCenter(m_PVM * vec4(center, 1));
+        vec3 tCenter(m_PVM * vec4(center, 1));
 
         if (m_areaMode == SGL_POINT)
         {
-            drawPoint(transformedCenter);
+            drawPoint(tCenter);
             return;
         }
 
-        vec3i c = transformedCenter;
+        vec3i c = tCenter;
 
         const mat4& mv = m_PVM;
         auto mv00 = mv[0][0];
@@ -448,31 +448,31 @@ namespace sgl
         fourX = 0;
         fourY = 4*radius;
 
-        std::function putLineFunc = [&](const vec3i& p1, const vec3i& p2, const vec3& color) { putLine(p1, p2, color); };
-        std::function putPixelFunc = [&](const vec3i& p, const vec3& color) { putPixel(p, color); };
+        std::function putLineFunc = [&](const vec3& p1, const vec3& p2, const vec3& color) { putLine(p1, p2, color); };
+        std::function putPixelFunc = [&](const vec3& p, const vec3& color) { putPixel(p, color); };
         if (m_features.test(SGL_DEPTH_TEST))
         {
-            putLineFunc = [&](const vec3i& p1, const vec3i& p2, const vec3& color) { putLineDepth(p1, p2, color); };
-            putPixelFunc = [&](const vec3i& p, const vec3& color) { putPixelDepth(p, color); };
+            putLineFunc = [&](const vec3& p1, const vec3& p2, const vec3& color) { putLineDepth(p1, p2, color); };
+            putPixelFunc = [&](const vec3& p, const vec3& color) { putPixelDepth(p, color); };
         }
 
         std::function putPixels = [&]() { 
-            putPixelFunc(vec3i( x+c.x,  y+c.y, c.z), m_drawColor);
-            putPixelFunc(vec3i( x+c.x, -y+c.y, c.z), m_drawColor);
-            putPixelFunc(vec3i(-x+c.x,  y+c.y, c.z), m_drawColor);
-            putPixelFunc(vec3i(-x+c.x, -y+c.y, c.z), m_drawColor);
-            putPixelFunc(vec3i( y+c.x,  x+c.y, c.z), m_drawColor);
-            putPixelFunc(vec3i( y+c.x, -x+c.y, c.z), m_drawColor);
-            putPixelFunc(vec3i(-y+c.x,  x+c.y, c.z), m_drawColor);
-            putPixelFunc(vec3i(-y+c.x, -x+c.y, c.z), m_drawColor);
+            putPixelFunc(vec3( x+c.x,  y+c.y, tCenter.z), m_drawColor);
+            putPixelFunc(vec3( x+c.x, -y+c.y, tCenter.z), m_drawColor);
+            putPixelFunc(vec3(-x+c.x,  y+c.y, tCenter.z), m_drawColor);
+            putPixelFunc(vec3(-x+c.x, -y+c.y, tCenter.z), m_drawColor);
+            putPixelFunc(vec3( y+c.x,  x+c.y, tCenter.z), m_drawColor);
+            putPixelFunc(vec3( y+c.x, -x+c.y, tCenter.z), m_drawColor);
+            putPixelFunc(vec3(-y+c.x,  x+c.y, tCenter.z), m_drawColor);
+            putPixelFunc(vec3(-y+c.x, -x+c.y, tCenter.z), m_drawColor);
         };
         if (m_areaMode == SGL_FILL)
         {
             putPixels = [&]() {
-                putLineFunc(vec3i(c.x-x, c.y + y, c.z), vec3i(c.x + x, c.y + y, c.z), m_drawColor);
-                putLineFunc(vec3i(c.x-x, c.y - y, c.z), vec3i(c.x + x, c.y - y, c.z), m_drawColor);
-                putLineFunc(vec3i(c.x-y, c.y + x, c.z), vec3i(c.x + y, c.y + x, c.z), m_drawColor);
-                putLineFunc(vec3i(c.x-y, c.y - x, c.z), vec3i(c.x + y, c.y - x, c.z), m_drawColor);
+                putLineFunc(vec3(tCenter.x-x, c.y + y, c.z), vec3(tCenter.x + x, c.y + y, c.z), m_drawColor);
+                putLineFunc(vec3(tCenter.x-x, c.y - y, c.z), vec3(tCenter.x + x, c.y - y, c.z), m_drawColor);
+                putLineFunc(vec3(tCenter.x-y, c.y + x, c.z), vec3(tCenter.x + y, c.y + x, c.z), m_drawColor);
+                putLineFunc(vec3(tCenter.x-y, c.y - x, c.z), vec3(tCenter.x + y, c.y - x, c.z), m_drawColor);
             };
         }
 
