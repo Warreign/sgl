@@ -17,7 +17,6 @@ sgl::SglController sgl::SglController::s_instance;
 
 void sglInit(void)
 {
-    std::cout << "Hello SGL!" << std::endl;
 }
 
 sglEErrorCode sglGetError(void)

@@ -14,6 +14,7 @@ find_package(GLUT)
 set(OpenGL_GL_PREFERENCE LEGACY)
 find_package(OpenGL)
 
+option(DEBUG_MSG "Print debug messages") 
 option(USE_SIMD "Enable usage of SIMD instructions for matrix multiplication" ON)
 
 # Set general compiler flags.

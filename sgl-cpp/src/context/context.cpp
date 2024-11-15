@@ -50,8 +50,9 @@ namespace sgl
         m_projectionStack.push_back(mat4::identity);
         enableFeatures(SGL_DEPTH_TEST);
         m_isInitialized = true;
-
+#ifdef DEBUG_MSG
         std::cout << "Initializing context with dimensions: " << width << "x" << height << std::endl;
+#endif
     }
 
     void Context::clearBuffers(unsigned what)

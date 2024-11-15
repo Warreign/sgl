@@ -10,6 +10,10 @@ if (USE_SIMD)
   target_compile_definitions(${PROJECT_NAME} PRIVATE SGL_SIMD)
 endif()
 
+if (DEBUG_MSG)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE DEBUG_MSG)
+endif()
+
 target_sources(${PROJECT_NAME} PRIVATE ${SGL_CXX})
 
 target_include_directories(${PROJECT_NAME}
