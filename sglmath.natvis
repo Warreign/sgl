@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="sgl::Vector&lt;4,*&gt;">
+        <DisplayString>{{ x={x} y={y} z={z} w={w} }}</DisplayString>
+        <Expand>
+            <Item Name="[x]">x</Item>
+            <Item Name="[y]">y</Item>
+            <Item Name="[z]">z</Item>
+            <Item Name="[w]">w</Item>
+        </Expand>
+    </Type>
+    <Type Name="sgl::Vector&lt;3,*&gt;">
+        <Expand>
+            <Item Name="[x]">x</Item>
+            <Item Name="[y]">y</Item>
+            <Item Name="[z]">z</Item>
+        </Expand>
+    </Type>
+    <Type Name="sgl::Vector&lt;2,*&gt;">
+        <Expand>
+            <Item Name="[x]">x</Item>
+            <Item Name="[y]">y</Item>
+        </Expand>
+    </Type>
+    <Type Name="sgl::Matrix&lt;4, 4, *&gt;">
+        <Expand>
+            <ArrayItems>
+                <Size>4</Size>
+                <ValuePointer>m_data._Elems</ValuePointer>
+            </ArrayItems>
+        </Expand>
+    </Type>
+</AutoVisualizer>
