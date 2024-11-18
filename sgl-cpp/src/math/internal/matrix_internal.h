@@ -57,6 +57,9 @@ namespace sgl
 
         Matrix<M, N, T> transpose() const;
 
+        template <size_t _M = M, size_t _N = N, typename _T = T, typename = std::enable_if<_M == _N>>
+        constexpr Matrix<_M, _N, _T> inverse() const;
+
         constexpr const T* data_ptr() const;
 
         friend std::ostream &operator<<(std::ostream &os, const Matrix<N, M, T> &rhs)
@@ -100,6 +103,15 @@ namespace sgl
     Matrix<4, 4, float> operator*(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2);
 
     Vector<4, float> operator*(const Matrix<4, 4, float>& m, const Vector<4, float>& v);
+    template <size_t N, size_t M, typename T>
+    
+    template <size_t _M, size_t _N, typename _T, typename >
+    constexpr Matrix<_M, _N, _T> Matrix<N, M, T>::inverse() const
+    {
+        return Matrix<_M, _N, _T>();
+    }
+
+
 #endif
 }
 
