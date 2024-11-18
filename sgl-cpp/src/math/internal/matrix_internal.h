@@ -96,6 +96,11 @@ namespace sgl
     template <size_t N, size_t M, typename T>
     constexpr Vector<M, T> operator*(const Matrix<N, M, T>& m, const Vector<M, T>& v);
 
+    template <size_t _M, size_t _N, typename _T, typename >
+    constexpr Matrix<_M, _N, _T> Matrix<N, M, T>::inverse() const
+    {
+        return Matrix<_M, _N, _T>();
+    }
 
 #ifdef SGL_SIMD
     Matrix<4, 4, float> operator+(const Matrix<4, 4, float>& m1, const Matrix<4, 4, float>& m2);
@@ -104,13 +109,6 @@ namespace sgl
 
     Vector<4, float> operator*(const Matrix<4, 4, float>& m, const Vector<4, float>& v);
     template <size_t N, size_t M, typename T>
-    
-    template <size_t _M, size_t _N, typename _T, typename >
-    constexpr Matrix<_M, _N, _T> Matrix<N, M, T>::inverse() const
-    {
-        return Matrix<_M, _N, _T>();
-    }
-
 
 #endif
 }
