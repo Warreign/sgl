@@ -1,5 +1,5 @@
 project(sgl)
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.11)
 
 file(GLOB_RECURSE SGL_CXX "src/*.cpp")
 add_library(${PROJECT_NAME} STATIC ${SGL_CXX})
