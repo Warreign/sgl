@@ -3,6 +3,8 @@
 #include "context/context_manager.h"
 #include "context/context.h"
 
+#include "context/light.h"
+#include "context/material.h"
 #include "math/vector.h"
 #include "math/matrix.h"
 #include "math/transform.h"
@@ -85,7 +87,7 @@ void sglBegin(sglEElementType mode)
     {
         m.setError(SGL_INVALID_ENUM);
     }
-    context->beginDrawing(mode);
+    context->beginPrimitive(mode);
 }
 
 void sglEnd(void)
@@ -456,26 +458,74 @@ void sglDisable(sglEEnableFlags cap)
 
 void sglBeginScene()
 {
+    sgl::SglController& m = sgl::SglController::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing() || context->isSpecifyingScene())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    context->beginScene();
 }
 
 void sglEndScene()
 {
+    sgl::SglController& m = sgl::SglController::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing() || !context->isSpecifyingScene())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    context->endScene();
 }
 
 void sglSphere(const float x, const float y, const float z, const float radius)
 {
+    sgl::SglController& m = sgl::SglController::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing() || !context->isSpecifyingScene())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    context->addSphere(sgl::vec3(x, y, z), radius);
 }
 
 void sglMaterial(const float r, const float g, const float b, const float kd, const float ks, const float shine, const float T, const float ior)
 {
+    sgl::SglController& m = sgl::SglController::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    context->setCurrentMat(sgl::Material(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
 }
 
 void sglPointLight(const float x, const float y, const float z, const float r, const float g, const float b)
 {
+    sgl::SglController& m = sgl::SglController::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    context->addPointLight(sgl::PointLight( sgl::vec3(x,y,z), sgl::vec3(r,g,b) ));
 }
 
 void sglRayTraceScene()
 {
+    sgl::SglController& m = sgl::SglController::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing() || context->isSpecifyingScene())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    context->renderScene();
 }
 
 void sglRasterizeScene()

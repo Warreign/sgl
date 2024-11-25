@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <memory>
 
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
@@ -44,7 +45,9 @@ namespace sgl
           m_areaMode(SGL_LINE),
           m_fillFunc(std::bind(&Context::fill, this, std::placeholders::_1)),
           m_elementType(SGL_LAST_ELEMENT_TYPE),
-          m_PVM(mat4::identity)
+          m_PVM(mat4::identity),
+          m_isSpecifyingScene(false),
+          m_scenePrimitives(0)
     {
         m_modelStack.push_back(mat4::identity);
         m_projectionStack.push_back(mat4::identity);
@@ -232,7 +235,7 @@ namespace sgl
         putLineDepth(start.x, end.x, start.y, start.z, end.z, color);
     }
 
-    void Context::beginDrawing(uint32_t elementType) 
+    void Context::beginPrimitive(uint32_t elementType) 
     {
         m_elementType = elementType;
         m_isDrawing = true;
@@ -240,17 +243,63 @@ namespace sgl
         updatePVM();
     }
 
-    void Context::addVertex(const vec4& vertex, bool applyPVM) 
+    void Context::addVertex(const vec4& vertex, bool applyModelView) 
     {
         assert(m_isDrawing);
-        vec4 transformed = m_PVM * vertex;
-        m_vertexBuffer.push_back(transformed / transformed.w);
+        if (!applyModelView)
+        {
+            vec4 transformed = m_PVM * vertex;
+            m_vertexBuffer.push_back(transformed / transformed.w);
+        }
+        else 
+        {
+            m_vertexBuffer.push_back(getModelView() * vertex);
+        }
     }
 
     void Context::addVertex(const vec4& vertex, const mat4& matrix) 
     {
         assert(m_isDrawing);
         m_vertexBuffer.push_back(matrix * vertex);
+    }
+
+    void Context::  endPrimitive()
+    {
+        assert(m_elementType != SGL_LAST_ELEMENT_TYPE && m_isDrawing);
+        if ((m_elementType > SGL_POINTS && m_vertexBuffer.size() < 2))
+        {
+            m_elementType = SGL_LAST_ELEMENT_TYPE;
+            m_vertexBuffer.clear();
+            return;
+        }
+
+        if (m_isSpecifyingScene)
+        {
+            switch (m_elementType)
+            {
+                case SGL_POLYGON:
+                case SGL_TRIANGLES:
+                {
+                    assert(m_vertexBuffer.size() == 3);
+                    const vec4& v1 = m_vertexBuffer[0];
+                    const vec4& v2 = m_vertexBuffer[1];
+                    const vec4& v3 = m_vertexBuffer[2];
+                    m_scenePrimitives.emplace_back(std::make_unique<Triangle>(m_currentMat, v1, v2, v3));
+                    break;
+                }
+                default:
+                    assert(false && "Cannot have lines/points in a scene");
+                    break;
+            }
+        }
+        else 
+        {
+            drawBuffer();
+        }
+
+        m_isDrawing = false;
+        m_elementType = SGL_LAST_ELEMENT_TYPE;
+        m_vertexBuffer.clear();
     }
 
     void Context::drawBuffer() 
@@ -409,9 +458,48 @@ namespace sgl
                 assert(false); // Not implemented
                 break;
         }
-        m_isDrawing = false;
-        m_elementType = SGL_LAST_ELEMENT_TYPE;
-        m_vertexBuffer.clear();
+    }
+
+    void Context::beginScene()
+    {
+        m_isSpecifyingScene = true;
+        m_scenePrimitives.clear();
+    }
+
+    void Context::endScene()
+    {
+        m_isSpecifyingScene = false;
+    }
+
+    bool Context::isSpecifyingScene() const
+    {
+        return m_isSpecifyingScene;
+    }
+
+    void Context::renderScene()
+    {
+        for (int y = 0; y < m_height; ++y)
+        {
+            for (int x = 0; x < m_width; ++x)
+            {
+                
+            }
+        }
+    }
+
+    void Context::setCurrentMat(const Material& material)
+    {
+        m_currentMat = material;
+    }
+
+    void Context::addPointLight(PointLight&& pl)
+    {
+        m_sceneLights.push_back(pl);
+    }
+
+    void Context::addSphere(const vec3& center, float radius)
+    {
+        m_scenePrimitives.emplace_back(std::make_unique<Sphere>(m_currentMat, center, radius));
     }
 
     void Context::setAreaMode(uint32_t areaMode)
@@ -501,8 +589,7 @@ namespace sgl
         float dtheta = 2 * M_PI / steps;
 
         vec3i c(center);
-
-        beginDrawing(SGL_LINE_LOOP);
+        beginPrimitive(SGL_LINE_LOOP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = i * dtheta;
@@ -517,8 +604,7 @@ namespace sgl
     {
         int steps = 40;
         float dtheta = 2 * M_PI / steps;
-
-        beginDrawing(m_areaMode == SGL_FILL ? SGL_POLYGON : SGL_LINE_LOOP);
+        beginPrimitive(m_areaMode == SGL_FILL ? SGL_POLYGON : SGL_LINE_LOOP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = i * dtheta;
@@ -538,8 +624,7 @@ namespace sgl
         float dtheta = (toRad-fromRad) / steps;
 
         bool isFilled = m_areaMode == SGL_FILL;
-
-        beginDrawing(isFilled ? SGL_POLYGON : SGL_LINE_STRIP);
+        beginPrimitive(isFilled ? SGL_POLYGON : SGL_LINE_STRIP);
         for (int i = 0; i < steps; ++i)
         {
             float theta = fromRad + i * dtheta;
