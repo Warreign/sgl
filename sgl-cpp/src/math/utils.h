@@ -3,6 +3,7 @@
 #include "math/internal/vector_internal.h"
 
 #include <cmath>
+#include <type_traits>
 
 #ifdef SGL_SIMD
 #include <immintrin.h>
@@ -53,6 +54,18 @@ namespace math
         return _mm_cvtss_f32(sum);
     }
 #endif
+
+    template <size_t N, typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+    constexpr T length(const Vector<N, T>& v)
+    {
+        return std::sqrt(dotProduct(v, v));
+    }
+
+    template <size_t N, typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+    constexpr Vector<N, T> normalize(const Vector<N, T>& v)
+    {
+        return v / length(v);
+    }
 
 }
 
