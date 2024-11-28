@@ -1,6 +1,8 @@
 #include "context.h"
 
 #include "math/transform.h"
+#include "math/utils.h"
+#include "ray.h"
 #include "sgl.h"
 
 #include <cmath>
@@ -179,7 +181,7 @@ namespace sgl
         assert(m_isInitialized);
         if (x < 0 || y < 0 || x >= m_width || y >= m_height)
         {
-            return;
+            return;     
         }
         int idx = point2idx(x, y);
         if (z < m_depthBuffer[idx])
@@ -199,7 +201,7 @@ namespace sgl
         putPixelDepth(pos.x, pos.y, pos.z, color);
     }
 
-    void Context::putLine(int startX, int endX, int y, const vec3& color)
+    void Context::putPixelRow(int startX, int endX, int y, const vec3& color)
     {
         assert(startX <= endX && y >= 0 && y < m_height);
         startX = std::max(startX, 0);
@@ -209,7 +211,7 @@ namespace sgl
         std::fill(startIt, endIt, color);
     }
 
-    void Context::putLineDepth(int startX, int endX, int y, float startZ, float endZ, const vec3& color)
+    void Context::putPixelRowDepth(int startX, int endX, int y, float startZ, float endZ, const vec3& color)
     {
         assert(startX <= endX && y >= 0 && y < m_height);
         startX = std::max(startX, 0);
@@ -224,15 +226,15 @@ namespace sgl
         }
     }
 
-    void Context::putLine(const vec3& start, const vec3& end, const vec3& color)
+    void Context::putPixelRow(const vec3& start, const vec3& end, const vec3& color)
     {
         assert(start.y == end.y);
-        putLine(std::floor(start.x), std::ceil(end.x), start.y, color);
+        putPixelRow(std::floor(start.x), std::ceil(end.x), start.y, color);
     }
 
-    void Context::putLineDepth(const vec3& start, const vec3& end, const vec3& color)
+    void Context::putPixelRowDepth(const vec3& start, const vec3& end, const vec3& color)
     {
-        putLineDepth(start.x, end.x, start.y, start.z, end.z, color);
+        putPixelRowDepth(start.x, end.x, start.y, start.z, end.z, color);
     }
 
     void Context::beginPrimitive(uint32_t elementType) 
@@ -537,11 +539,11 @@ namespace sgl
         fourX = 0;
         fourY = 4*radius;
 
-        std::function putLineFunc = [&](const vec3& p1, const vec3& p2, const vec3& color) { putLine(p1, p2, color); };
+        std::function putLineFunc = [&](const vec3& p1, const vec3& p2, const vec3& color) { putPixelRow(p1, p2, color); };
         std::function putPixelFunc = [&](const vec3& p, const vec3& color) { putPixel(p, color); };
         if (m_features.test(SGL_DEPTH_TEST))
         {
-            putLineFunc = [&](const vec3& p1, const vec3& p2, const vec3& color) { putLineDepth(p1, p2, color); };
+            putLineFunc = [&](const vec3& p1, const vec3& p2, const vec3& color) { putPixelRowDepth(p1, p2, color); };
             putPixelFunc = [&](const vec3& p, const vec3& color) { putPixelDepth(p, color); };
         }
 
@@ -612,7 +614,7 @@ namespace sgl
             float y = center.y + b * std::sin(theta);
             addVertex(vec4(x, y, center.z, 1));
         }
-        drawBuffer();
+        endPrimitive();
     }
 
     void Context::drawArc(vec3 center, float radius, float fromRad, float toRad)
@@ -636,7 +638,7 @@ namespace sgl
         {
             addVertex(vec4(center, 1));
         }
-        drawBuffer();
+        endPrimitive();
 
     }
 
@@ -666,7 +668,7 @@ namespace sgl
             uint32_t xPixelStart = std::max(static_cast<int>(x-halfSize), 0);
             uint32_t xPixelEnd = x + halfSize;
 
-            putLine(xPixelStart, xPixelEnd, yPixel, m_drawColor);
+            putPixelRow(xPixelStart, xPixelEnd, yPixel, m_drawColor);
         }
     }
 
@@ -732,7 +734,7 @@ namespace sgl
             {
                 int startX = std::floor(activeTable[i-1].x);
                 int endX = std::ceil(activeTable[i].x);
-                putLine(startX, endX, y, m_drawColor);
+                putPixelRow(startX, endX, y, m_drawColor);
             }
 
             for (auto& edge : activeTable)
@@ -807,7 +809,7 @@ namespace sgl
                 float startZ = activeTable[i-1].z;
                 float endZ = activeTable[i].z;
                 
-                putLineDepth(startX, endX, y, startZ, endZ, m_drawColor);
+                putPixelRowDepth(startX, endX, y, startZ, endZ, m_drawColor);
             }
 
             for (auto& edge : activeTable)

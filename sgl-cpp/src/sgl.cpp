@@ -99,7 +99,7 @@ void sglEnd(void)
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
-    context->drawBuffer();
+    context->endPrimitive();
 }
 
 void sglVertex4f(float x, float y, float z, float w)

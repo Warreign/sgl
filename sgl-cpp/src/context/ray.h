@@ -5,7 +5,7 @@
 namespace sgl
 {
 
-class Ray
+struct Ray
 {
     Ray(const Ray&) = default;
     Ray(Ray&&) = default;
@@ -15,7 +15,6 @@ class Ray
     Ray(float x, float y, float z);
 
     vec3 dir;
-    vec3 color;
 };
 
 }
