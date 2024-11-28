@@ -1,5 +1,6 @@
 #pragma once
 #include "light.h"
+#include "material.h"
 #include "math/vector.h"
 #include "math/matrix.h"
 #include "primitive.h"
@@ -67,6 +68,8 @@ public:
     void renderScene();
     void setCurrentMat(const Material& material);
     void addPointLight(PointLight&& pl);
+    // Returns color of a pixel according to phong model
+    vec3 calculatePhong(const Material& material, const vec3& cameraDir, const vec3& lightDir);
     void addSphere(const vec3& center, float radius);
 //
     

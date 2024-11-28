@@ -1,6 +1,8 @@
 #include "context.h"
 
 #include "math/transform.h"
+#include "math/utils.h"
+#include "ray.h"
 #include "sgl.h"
 
 #include <cmath>
@@ -179,7 +181,7 @@ namespace sgl
         assert(m_isInitialized);
         if (x < 0 || y < 0 || x >= m_width || y >= m_height)
         {
-            return;
+            return;     
         }
         int idx = point2idx(x, y);
         if (z < m_depthBuffer[idx])
@@ -612,7 +614,7 @@ namespace sgl
             float y = center.y + b * std::sin(theta);
             addVertex(vec4(x, y, center.z, 1));
         }
-        drawBuffer();
+        endPrimitive();
     }
 
     void Context::drawArc(vec3 center, float radius, float fromRad, float toRad)
@@ -636,7 +638,7 @@ namespace sgl
         {
             addVertex(vec4(center, 1));
         }
-        drawBuffer();
+        endPrimitive();
 
     }
 
