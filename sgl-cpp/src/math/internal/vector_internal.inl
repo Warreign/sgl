@@ -284,7 +284,8 @@ namespace sgl
             this->m_data[i] = static_cast<T>(v[i]);
         }
         
-        ([&, i = M]() mutable
+        size_t i = M;
+        ([&]()
         {
             this->m_data[i++] = static_cast<T>(rest);
         }(), ...);
