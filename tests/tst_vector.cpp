@@ -34,5 +34,11 @@ int main()
     std::cout << sgl::vec4(vecf, 777) << std::endl;
 
 
+    sgl::vec2 vvc2(1, 2);
+    sgl::vec4 vvc4(vvc2, 3, 4);
+
+    std::cout << vvc2 << std::endl;
+    std::cout << vvc4 << std::endl;
+
     return 0;
 }

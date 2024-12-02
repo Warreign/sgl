@@ -69,7 +69,7 @@ public:
     void setCurrentMat(const Material& material);
     void addPointLight(PointLight&& pl);
     // Returns color of a pixel according to phong model
-    vec3 calculatePhong(const Material& material, const vec3& cameraDir, const vec3& lightDir);
+    vec3 calculatePhong(const Material& material, const vec3& cameraDir, const vec3& surfaceNormal);
     void addSphere(const vec3& center, float radius);
 //
     

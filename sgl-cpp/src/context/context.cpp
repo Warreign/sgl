@@ -480,11 +480,36 @@ namespace sgl
 
     void Context::renderScene()
     {
-        for (int y = 0; y < m_height; ++y)
+        mat4 viewportInv = m_viewport.inverse();
+        std::cout << viewportInv << std::endl;
+        for (int yp = 0; yp < m_height; ++yp)
         {
-            for (int x = 0; x < m_width; ++x)
+            for (int xp = 0; xp < m_width; ++xp)
             {
+                vec3 viewportPoint(1 / (- static_cast<float>(m_width) * 0.5 + (xp + 0.5)), 1/ (- static_cast<float>(m_height) * 0.5 + (yp + 0.5)), 1.0);
+                vec3 rayDir = math::normalize(viewportPoint);
+
+                if (xp % 5 == 0 && yp % 5 == 0)
+                {
+                    std::cout << viewportPoint << std::endl;
+                }
+
+                // std::cout << rayDir << std::endl << std::endl;
+                // Ray primaryRay = Ray(rayDir);
+
                 
+                
+                // for (const auto& primitive : m_scenePrimitives)
+                // {
+                //     auto [isIntersected, point] = primitive->intersect(primaryRay);
+                //     if (isIntersected)
+                //     {
+                        
+                //     }
+                // }
+                vec3 v1(1,2,3);
+                vec3 v2(1,2,3);
+                float dot = math::dotProduct(v1, v2);
             }
         }
     }

@@ -508,7 +508,7 @@ void sglPointLight(const float x, const float y, const float z, const float r, c
 {
     sgl::SglController& m = sgl::SglController::getInstance();
     sgl::Context* context = m.getActive();
-    if (!context || context->isDrawing())
+    if (!context || context->isDrawing() || !context->isSpecifyingScene())
     {
         m.setError(SGL_INVALID_OPERATION);
         return;
