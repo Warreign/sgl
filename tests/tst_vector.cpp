@@ -1,10 +1,10 @@
 #include "../src/math/vector.h"
-
 #include <cassert>
 #include <iostream>
 
 int main()
 {
+
     static_assert( sizeof(sgl::vec3::data_type) * sgl::vec3::size == sizeof(sgl::vec3));
 
     static_assert( sizeof(sgl::vec4d) == sizeof(double) * 4);

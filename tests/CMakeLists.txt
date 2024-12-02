@@ -17,3 +17,7 @@ add_test(NAME VectorTest COMMAND Test_vector)
 
 add_executable(Test_matrix "tst_matrix.cpp")
 add_test(NAME MatrixTest COMMAND Test_matrix)
+
+add_executable(Test_intersections "tst_intersections.cpp")
+add_test(NAME IntersectionTest COMMAND Test_intersections)
+target_link_libraries(Test_intersections PRIVATE sgl)
