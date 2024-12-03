@@ -57,6 +57,81 @@ namespace sgl
     }
 
     template <size_t N, size_t M, typename T>
+    template <size_t _N, size_t _M, typename _T, typename >
+    constexpr Matrix<_N, _M, _T> Matrix<N, M, T>::inverse() const
+    {
+        Matrix<N, M, T> ret = *this;
+
+        int indxc[4],indxr[4],ipiv[4];
+        int i,icol,irow,j,k,l,ll,n;
+        float big,dum,pivinv,temp;
+        // satisfy the compiler
+        icol = irow = 0;
+            
+        // the size of the matrix
+        n = 4;
+            
+        for ( j = 0 ; j < n ; j++) /* zero pivots */
+        ipiv[j] = 0;
+            
+        for ( i = 0; i < n; i++)
+        {
+            big = 0.0;
+            for (j = 0 ; j < n ; j++)
+            if (ipiv[j] != 1)
+                for ( k = 0 ; k<n ; k++)
+                {
+                    if (ipiv[k] == 0)
+                    {
+                        if (fabs(ret[k][j]) >= big)
+                        {
+                            big = fabs(ret[k][j]);
+                            irow = j;
+                            icol = k;
+                        }
+                    }
+                }
+            ++(ipiv[icol]);
+            if (irow != icol)
+            {
+                for ( l = 0 ; l<n ; l++)
+                {
+                    temp = ret[l][icol];
+                    ret[l][icol] = ret[l][irow];
+                    ret[l][irow] = temp;
+                }
+            }
+            indxr[i] = irow;
+            indxc[i] = icol;
+                    
+            pivinv = 1.0 / ret[icol][icol];
+            ret[icol][icol] = 1.0 ;
+            for ( l = 0 ; l<n ; l++)
+            ret[l][icol] = ret[l][icol] * pivinv ;
+                    
+            for (ll = 0 ; ll < n ; ll++)
+            if (ll != icol)
+                {
+                dum = ret[icol][ll];
+                ret[icol][ll] = 0.0;
+                for ( l = 0 ; l<n ; l++)
+                    ret[l][ll] = ret[l][ll] - ret[l][icol] * dum ;
+                }
+        }
+        for ( l = n; l--; )
+        {
+            if (indxr[l] != indxc[l])
+            for ( k = 0; k<n ; k++)
+                {
+                temp = ret[indxr[l]][k];
+                ret[indxr[l]][k] = ret[indxc[l]][k];
+                ret[indxc[l]][k] = temp;
+                }
+        }
+        return ret;
+    }
+
+    template <size_t N, size_t M, typename T>
     inline constexpr Matrix<N, M, T>& Matrix<N, M, T>::operator+=(const Matrix<N, M, T> &other)
     {
         for (size_t i = 0; i < N; ++i)

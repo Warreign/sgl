@@ -75,5 +75,10 @@ int main()
 
     std::cout << mm3 << std::endl;
 
+    sgl::mat4 trnslt = sgl::translate(1, 2, 3);
+    sgl::mat4 invtrnslt = trnslt.inverse();
+    std::cout << trnslt << std::endl;
+    std::cout << invtrnslt << std::endl;
+
     return 0;
 }
