@@ -496,7 +496,7 @@ namespace sgl
                 pixelWorld = pixelWorld / pixelWorld.w;
 
                 vec4 rayDir = math::normalize(pixelWorld - originWorld);
-                Ray primary(rayDir);
+                Ray primary(vec3(0,0,0), rayDir);
 
                 std::shared_ptr<Primitive> closestPrimitive = nullptr;
                 vec3 closestIntersection;

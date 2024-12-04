@@ -4,6 +4,7 @@
 #include <numeric>
 
 #pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wc++20-extensions"
 
 namespace sgl
 {
