@@ -69,7 +69,7 @@ public:
     void setCurrentMat(const Material& material);
     void addPointLight(PointLight&& pl);
     // Returns color of a pixel according to phong model
-    vec3 calculatePhong(const Material& material, const vec3& cameraDir, const vec3& surfaceNormal);
+    vec3 calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal);
     void addSphere(const vec3& center, float radius);
 //
     
@@ -147,7 +147,7 @@ private:
 
     // Scene data
     bool m_isSpecifyingScene;
-    std::vector<std::unique_ptr<Primitive>> m_scenePrimitives;
+    std::vector<std::shared_ptr<Primitive>> m_scenePrimitives;
     std::vector<Light> m_sceneLights;
     Material m_currentMat;
 

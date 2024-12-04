@@ -2,6 +2,7 @@
 
 #include "math/transform.h"
 #include "math/utils.h"
+#include "primitive.h"
 #include "ray.h"
 #include "sgl.h"
 
@@ -286,7 +287,7 @@ namespace sgl
                     const vec4& v1 = m_vertexBuffer[0];
                     const vec4& v2 = m_vertexBuffer[1];
                     const vec4& v3 = m_vertexBuffer[2];
-                    m_scenePrimitives.emplace_back(std::make_unique<Triangle>(m_currentMat, v1, v2, v3));
+                    m_scenePrimitives.emplace_back(std::make_shared<Triangle>(m_currentMat, v1, v2, v3));
                     break;
                 }
                 default:
@@ -480,36 +481,43 @@ namespace sgl
 
     void Context::renderScene()
     {
-        mat4 viewportInv = m_viewport.inverse();
-        std::cout << viewportInv << std::endl;
+        mat4 invModelView = getModelView().inverse();
+        mat4 invProjection = getProjection().inverse();
+        mat4 invViewport = m_viewport.inverse();
+
+        vec4 originWorld = invModelView * vec4(0, 0, 0, 1);
+        mat4 invTransform = invModelView * invProjection * invViewport;
+
         for (int yp = 0; yp < m_height; ++yp)
         {
             for (int xp = 0; xp < m_width; ++xp)
             {
-                vec3 viewportPoint(1 / (- static_cast<float>(m_width) * 0.5 + (xp + 0.5)), 1/ (- static_cast<float>(m_height) * 0.5 + (yp + 0.5)), 1.0);
-                vec3 rayDir = math::normalize(viewportPoint);
+                vec4 pixelWorld = invTransform * vec4(xp, yp, -1, 1);
+                pixelWorld = pixelWorld / pixelWorld.w;
 
-                if (xp % 5 == 0 && yp % 5 == 0)
+                vec4 rayDir = math::normalize(pixelWorld - originWorld);
+                Ray primary(rayDir);
+
+                std::shared_ptr<Primitive> closestPrimitive = nullptr;
+                vec3 closestIntersection;
+                float closestDistance = std::numeric_limits<float>::max();
+                for (const auto& primitive : m_scenePrimitives)
                 {
-                    std::cout << viewportPoint << std::endl;
+                    auto [isIntersected, point] = primitive->intersect(primary);
+                    float distance = math::length(point);
+                    if (isIntersected && distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestIntersection = point;
+                        closestPrimitive = primitive;
+                    }
                 }
-
-                // std::cout << rayDir << std::endl << std::endl;
-                // Ray primaryRay = Ray(rayDir);
-
                 
-                
-                // for (const auto& primitive : m_scenePrimitives)
-                // {
-                //     auto [isIntersected, point] = primitive->intersect(primaryRay);
-                //     if (isIntersected)
-                //     {
-                        
-                //     }
-                // }
-                vec3 v1(1,2,3);
-                vec3 v2(1,2,3);
-                float dot = math::dotProduct(v1, v2);
+                vec3 phongColor = closestPrimitive ?
+                    calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection)) :
+                    m_clearColor;
+
+                putPixel(vec3(xp, yp, 0), phongColor);
             }
         }
     }
@@ -524,9 +532,14 @@ namespace sgl
         m_sceneLights.push_back(pl);
     }
 
+    vec3 Context::calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal) 
+    {
+        return m_clearColor;
+    }
+
     void Context::addSphere(const vec3& center, float radius)
     {
-        m_scenePrimitives.emplace_back(std::make_unique<Sphere>(m_currentMat, center, radius));
+        m_scenePrimitives.emplace_back(std::make_shared<Sphere>(m_currentMat, center, radius));
     }
 
     void Context::setAreaMode(uint32_t areaMode)

@@ -60,4 +60,9 @@ vec3 Sphere::getNormal(const vec3& point) const
     return math::normalize(point - m_center);
 }
 
+const Material& Primitive::getMaterial() const 
+{
+    return m_material;
+}
+
 } // namespace sgl
