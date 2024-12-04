@@ -1,4 +1,5 @@
 #include "../src/math/vector.h"
+#include "math/utils.h"
 
 #include <cassert>
 #include <iostream>
@@ -39,6 +40,13 @@ int main()
 
     std::cout << vvc2 << std::endl;
     std::cout << vvc4 << std::endl;
+
+
+    sgl::vec3 cv1(1, 0, 0);
+    sgl::vec3 cv2(0, 1, 0);
+    std::cout << cv1 << std::endl;
+    std::cout << cv2 << std::endl;
+    std::cout << sgl::math::crossProduct(cv1, cv2) << std::endl;
 
     return 0;
 }

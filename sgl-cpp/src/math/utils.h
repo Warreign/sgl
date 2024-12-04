@@ -30,13 +30,6 @@ namespace math
         return ret;
     }
 
-    template <size_t N, typename T>
-    constexpr T distance(const Vector<N, T>& p1, const Vector<N, T>& p2)
-    {
-        Vector<N, T> sub = p2 - p1;
-        return std::sqrt(dotProduct(sub, sub));
-    }
-
 #ifdef SGL_SIMD
     template <size_t N, typename = std::enable_if_t<N <= 4>>
     constexpr float dotProduct(const Vector<N, float> v1, const Vector<N, float>& v2)
@@ -54,6 +47,23 @@ namespace math
         return _mm_cvtss_f32(sum);
     }
 #endif
+
+    template <typename T>
+    constexpr Vector<3, T> crossProduct(const Vector<3, T>& v1, const Vector<3, T>& v2)
+    {
+        T cx = v1.y * v2.z - v1.z * v2.y;
+        T cy = v1.z * v2.x - v1.x * v2.z;
+        T cz = v1.x * v2.y - v1.y * v2.x;
+
+        return Vector<3, T>(cx, cy, cz);
+    }
+
+    template <size_t N, typename T>
+    constexpr T distance(const Vector<N, T>& p1, const Vector<N, T>& p2)
+    {
+        Vector<N, T> sub = p2 - p1;
+        return std::sqrt(dotProduct(sub, sub));
+    }
 
     template <size_t N, typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
     constexpr T length(const Vector<N, T>& v)
