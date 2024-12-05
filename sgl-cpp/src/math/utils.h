@@ -30,7 +30,7 @@ namespace sgl
             return ret;
         }
 
-        template <typename T>
+        template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
         constexpr Vector<3, T> crossProduct(const Vector<3, T>& v1, const Vector<3, T>& v2)
         {
             Vector<3, T> result;
@@ -38,6 +38,26 @@ namespace sgl
             result[1] = v1[2] * v2[0] - v1[0] * v2[2];
             result[2] = v1[0] * v2[1] - v1[1] * v2[0];
             return result;
+        }
+
+        template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+        constexpr Vector<3, T> reflect(const Vector<3, T>& incoming, const Vector<3, T>& normal)
+        {
+            return incoming - 2  * math::dotProduct(incoming, normal) * normal;
+        }
+
+        template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+        constexpr Vector<3, T> refract(const Vector<3, T>& incoming, const Vector<3, T>& normal, T coef)
+        {
+            T k = 1 - coef * coef * (1 - dotProduct(normal, incoming) * dotProduct(normal, incoming));
+            if (k < 0)
+            {
+                return Vector<3, T>();
+            }
+            else 
+            {
+                return coef * incoming - (coef * dotProduct(normal, incoming) + std::sqrt(k)) * normal;
+            }
         }
 
         template <size_t N, typename T>
