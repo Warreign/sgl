@@ -56,7 +56,7 @@ public:
 
 // Primitive specification
     void beginPrimitive(uint32_t elementType);
-    void addVertex(const vec4& vertex, bool applyModelView = false);
+    void addVertex(const vec4& vertex);
     void addVertex(const vec4& vertex, const mat4& matrix);
     void endPrimitive();
 //
@@ -66,7 +66,7 @@ public:
     void endScene();
     bool isSpecifyingScene() const;
     void renderScene();
-    void setCurrentMat(const Material& material);
+    void setCurrentMaterial(const Material& material);
     void addPointLight(PointLight&& pl);
     // Returns color of a pixel according to phong model
     vec3 calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal);
@@ -149,7 +149,7 @@ private:
     bool m_isSpecifyingScene;
     std::vector<std::shared_ptr<Primitive>> m_scenePrimitives;
     std::vector<Light> m_sceneLights;
-    Material m_currentMat;
+    Material m_currentMaterial;
 
 };
 

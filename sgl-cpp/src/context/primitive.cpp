@@ -69,6 +69,14 @@ vec3 Triangle::getNormal(const vec3& point) const
     return m_normal;    
 }
 
+void Triangle::applyTransform(const mat4& matrix) 
+{
+    for (vec3& vertex : m_vertices)
+    {
+        vertex = matrix * vec4(vertex, 1);
+    }
+}
+
 
 // Sphere
 Sphere::Sphere(const Material& material, const vec3& center, float radius)
@@ -102,6 +110,11 @@ std::tuple<bool, vec3> Sphere::intersect(const Ray& ray) const
 vec3 Sphere::getNormal(const vec3& point) const
 {
     return math::normalize(point - m_center);
+}
+
+void Sphere::applyTransform(const mat4& matrix) 
+{
+    m_center = matrix * vec4(m_center, 1);    
 }
 
 const Material& Primitive::getMaterial() const 

@@ -489,7 +489,7 @@ void sglSphere(const float x, const float y, const float z, const float radius)
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
-    context->addSphere(sgl::vec3(x, y, z), radius);
+    context->addSphere(sgl::vec4(x, y, z, 1), radius);
 }
 
 void sglMaterial(const float r, const float g, const float b, const float kd, const float ks, const float shine, const float T, const float ior)
@@ -501,7 +501,7 @@ void sglMaterial(const float r, const float g, const float b, const float kd, co
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
-    context->setCurrentMat(sgl::Material(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
+    context->setCurrentMaterial(sgl::Material(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
 }
 
 void sglPointLight(const float x, const float y, const float z, const float r, const float g, const float b)

@@ -105,8 +105,8 @@ target_compile_definitions(${NAME}
   PRIVATE
     # TEST0
     # TEST1
-    TEST2
-    # TEST3
+    # TEST2
+    TEST3
     # TEST4
     # TEST5
     )

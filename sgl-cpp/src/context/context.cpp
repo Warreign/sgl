@@ -246,17 +246,17 @@ namespace sgl
         updatePVM();
     }
 
-    void Context::addVertex(const vec4& vertex, bool applyModelView) 
+    void Context::addVertex(const vec4& vertex) 
     {
         assert(m_isDrawing);
-        if (!applyModelView)
+        if (!m_isSpecifyingScene)
         {
             vec4 transformed = m_PVM * vertex;
             m_vertexBuffer.push_back(transformed / transformed.w);
         }
         else 
         {
-            m_vertexBuffer.push_back(getModelView() * vertex);
+            m_vertexBuffer.push_back(vertex);
         }
     }
 
@@ -266,7 +266,7 @@ namespace sgl
         m_vertexBuffer.push_back(matrix * vertex);
     }
 
-    void Context::  endPrimitive()
+    void Context::endPrimitive()
     {
         assert(m_elementType != SGL_LAST_ELEMENT_TYPE && m_isDrawing);
         if ((m_elementType > SGL_POINTS && m_vertexBuffer.size() < 2))
@@ -287,7 +287,7 @@ namespace sgl
                     const vec4& v1 = m_vertexBuffer[0];
                     const vec4& v2 = m_vertexBuffer[1];
                     const vec4& v3 = m_vertexBuffer[2];
-                    m_scenePrimitives.emplace_back(std::make_shared<Triangle>(m_currentMat, v1, v2, v3));
+                    m_scenePrimitives.emplace_back(std::make_shared<Triangle>(m_currentMaterial, v1, v2, v3));
                     break;
                 }
                 default:
@@ -467,6 +467,7 @@ namespace sgl
     {
         m_isSpecifyingScene = true;
         m_scenePrimitives.clear();
+        m_sceneLights.clear();
     }
 
     void Context::endScene()
@@ -482,21 +483,19 @@ namespace sgl
     void Context::renderScene()
     {
         mat4 invModelView = getModelView().inverse();
-        mat4 invProjection = getProjection().inverse();
-        mat4 invViewport = m_viewport.inverse();
+        mat4 invPVM = m_PVM.inverse();
 
         vec4 originWorld = invModelView * vec4(0, 0, 0, 1);
-        mat4 invTransform = invModelView * invProjection * invViewport;
 
         for (int yp = 0; yp < m_height; ++yp)
         {
             for (int xp = 0; xp < m_width; ++xp)
             {
-                vec4 pixelWorld = invTransform * vec4(xp, yp, -1, 1);
+                vec4 pixelWorld = invPVM * vec4(xp, yp, -1, 1);
                 pixelWorld = pixelWorld / pixelWorld.w;
 
-                vec4 rayDir = math::normalize(pixelWorld - originWorld);
-                Ray primary(vec3(0,0,0), rayDir);
+                vec3 rayDir = math::normalize(vec3(pixelWorld) - vec3(originWorld));
+                Ray primary(originWorld, rayDir);
 
                 std::shared_ptr<Primitive> closestPrimitive = nullptr;
                 vec3 closestIntersection;
@@ -504,8 +503,8 @@ namespace sgl
                 for (const auto& primitive : m_scenePrimitives)
                 {
                     auto [isIntersected, point] = primitive->intersect(primary);
-                    float distance = math::length(point);
-                    if (isIntersected && distance < closestDistance)
+                    float distance = math::distance(vec3(originWorld), point);
+                    if (isIntersected && distance <= closestDistance)
                     {
                         closestDistance = distance;
                         closestIntersection = point;
@@ -514,7 +513,9 @@ namespace sgl
                 }
                 
                 vec3 phongColor = closestPrimitive ?
-                    calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection)) :
+                    // calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection)) :
+                    // (closestPrimitive->getMaterial().color) :
+                    (closestPrimitive->getMaterial().color) :
                     m_clearColor;
 
                 putPixel(vec3(xp, yp, 0), phongColor);
@@ -522,9 +523,9 @@ namespace sgl
         }
     }
 
-    void Context::setCurrentMat(const Material& material)
+    void Context::setCurrentMaterial(const Material& material)
     {
-        m_currentMat = material;
+        m_currentMaterial = material;
     }
 
     void Context::addPointLight(PointLight&& pl)
@@ -539,7 +540,7 @@ namespace sgl
 
     void Context::addSphere(const vec3& center, float radius)
     {
-        m_scenePrimitives.emplace_back(std::make_shared<Sphere>(m_currentMat, center, radius));
+        m_scenePrimitives.emplace_back(std::make_shared<Sphere>(m_currentMaterial, center, radius));
     }
 
     void Context::setAreaMode(uint32_t areaMode)

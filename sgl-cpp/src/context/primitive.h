@@ -3,6 +3,7 @@
 #include "material.h"
 #include "math/vector.h"
 #include "context/ray.h"
+#include "math/matrix.h"
 
 #include <array>
 #include <initializer_list>
@@ -28,6 +29,7 @@ public:
     // Intersect ray with the primitive, return point of intersection
     virtual std::tuple<bool, vec3> intersect(const Ray& ray) const = 0;
     virtual vec3 getNormal(const vec3& point) const = 0;
+    virtual void applyTransform(const mat4& matrix) = 0;
 
     const Material& getMaterial() const;
 
@@ -66,9 +68,10 @@ public:
 
     virtual std::tuple<bool, vec3> intersect(const Ray& ray) const override;
     virtual vec3 getNormal(const vec3& point) const override;
+    virtual void applyTransform(const mat4& matrix) override;
 
 private:
-    std::array<vec4, 3> m_vertices;
+    std::array<vec3, 3> m_vertices;
     vec3 m_normal;
 };
 
@@ -83,6 +86,7 @@ public:
 
     virtual std::tuple<bool, vec3> intersect(const Ray& ray) const override;
     virtual vec3 getNormal(const vec3& point) const override;
+    virtual void applyTransform(const mat4& matrix) override;
 
 private:
     vec3 m_center;
