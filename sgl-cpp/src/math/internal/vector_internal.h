@@ -113,9 +113,20 @@ namespace sgl
 
         // Arithmetic vector operators
         constexpr Vector<N, T>& operator+=(const Vector<N, T>& other);
+        template <typename S>
+        constexpr Vector<N, T>& operator+=(S scalar);
+
         constexpr Vector<N, T>& operator-=(const Vector<N, T>& other);
+        template <typename S>
+        constexpr Vector<N, T>& operator-=(S scalar);
+
         constexpr Vector<N, T>& operator*=(const Vector<N, T>& other);
+        template <typename S>
+        constexpr Vector<N, T>& operator*=(S scalar);
+
         constexpr Vector<N, T>& operator/=(const Vector<N, T>& other);
+        template <typename S>
+        constexpr Vector<N, T>& operator/=(S scalar);
 
         // In/decrement operators
         constexpr Vector<N, T>& operator++();

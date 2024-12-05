@@ -80,6 +80,50 @@ namespace sgl
         }
         return *this;
     }
+    
+    template <size_t N, typename T>
+    template <typename S>
+    constexpr Vector<N, T>& Vector<N, T>::operator+=(S scalar) 
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            this->m_data[i] += static_cast<T>(scalar);
+        }
+        return *this;
+    }
+
+    template <size_t N, typename T>
+    template <typename S>
+    constexpr Vector<N, T>& Vector<N, T>::operator-=(S scalar) 
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            this->m_data[i] -= static_cast<T>(scalar);
+        }
+        return *this;
+    }
+
+    template <size_t N, typename T>
+    template <typename S>
+    constexpr Vector<N, T>& Vector<N, T>::operator*=(S scalar) 
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            this->m_data[i] *= static_cast<T>(scalar);
+        }
+        return *this;
+    }
+
+    template <size_t N, typename T>
+    template <typename S>
+    constexpr Vector<N, T>& Vector<N, T>::operator/=(S scalar) 
+    {
+        for (int i = 0; i < N; ++i)
+        {
+            this->m_data[i] /= static_cast<T>(scalar);
+        }
+        return *this;
+    }
 
     template <size_t N, typename T>
     inline constexpr Vector<N, T>& Vector<N, T>::operator++()
