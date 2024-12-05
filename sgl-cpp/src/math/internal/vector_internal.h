@@ -175,6 +175,9 @@ namespace sgl
     template <size_t N, typename T, typename S>
     constexpr Vector<N, T> operator/(const Vector<N, T>& v1, S scalar);
 
+    template <size_t N, typename T>
+    constexpr Vector<N, T> operator-(const Vector<N, T>& v);
+
     // Comparison operators
     template <size_t N, typename T>
     constexpr bool operator==(const Vector<N, T>& v1, const Vector<N, T>& v2);

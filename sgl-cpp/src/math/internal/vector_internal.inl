@@ -284,6 +284,12 @@ namespace sgl
     }
 
     template <size_t N, typename T>
+    constexpr Vector<N, T> operator-(const Vector<N, T>& v) 
+    {
+        return Vector<N,T>() - v;
+    }
+
+    template <size_t N, typename T>
     inline constexpr bool operator==(const Vector<N, T>& v1, const Vector<N, T>& v2)
     {
         return std::mismatch(v1.m_data.begin(), v1.m_data.end(), v2.m_data.begin(), std::not_equal_to<>()).first == v1.m_data.begin();
