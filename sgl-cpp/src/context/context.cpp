@@ -1,5 +1,6 @@
 #include "context.h"
 
+#include "light.h"
 #include "math/transform.h"
 #include "math/utils.h"
 #include "primitive.h"
@@ -527,22 +528,9 @@ namespace sgl
         m_currentMaterial = material;
     }
 
-    void Context::addPointLight(PointLight&& pl)
+    void Context::addLight(std::shared_ptr<Light> light)
     {
-        m_sceneLights.emplace_back(std::move(pl));
-    }
-
-    vec3 normalize(const vec3 &v)
-    {
-        float length = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-        if (length == 0.0f) return vec3(0.0f, 0.0f, 0.0f); 
-        return vec3(v.x / length, v.y / length, v.z / length);
-    }
-
-    // Producto punto de dos vectores
-    float dot(const vec3 &a, const vec3 &b)
-    {
-        return a.x * b.x + a.y * b.y + a.z * b.z;
+        m_sceneLights.push_back(light);
     }
 
     vec3 Context::calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir)
