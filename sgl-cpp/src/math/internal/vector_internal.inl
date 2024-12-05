@@ -283,6 +283,30 @@ namespace sgl
         return res;
     }
 
+    template <size_t N, typename T, typename S>
+    constexpr Vector<N, T> operator+(S scalar, const Vector<N, T>& v) 
+    {
+        return v + scalar;
+    }
+
+    template <size_t N, typename T, typename S>
+    constexpr Vector<N, T> operator-(S scalar, const Vector<N, T>& v) 
+    {
+        return v - scalar;
+    }
+
+    template <size_t N, typename T, typename S>
+    constexpr Vector<N, T> operator*(S scalar, const Vector<N, T>& v)
+    {
+        return v * scalar;
+    }
+
+    template <size_t N, typename T, typename S>
+    constexpr Vector<N, T> operator/(S scalar, const Vector<N, T>& v)
+    {
+        return v / scalar;
+    }
+
     template <size_t N, typename T>
     constexpr Vector<N, T> operator-(const Vector<N, T>& v) 
     {

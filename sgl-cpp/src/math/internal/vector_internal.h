@@ -159,21 +159,29 @@ namespace sgl
     constexpr Vector<N, T> operator+(const Vector<N, T>& v1, const Vector<N, T>& v2);
     template <size_t N, typename T, typename S>
     constexpr Vector<N, T> operator+(const Vector<N, T>& v1, S scalar);
+    template <size_t N, typename T, typename S>
+    constexpr Vector<N, T> operator+(S scalar, const Vector<N, T>& v);
 
     template <size_t N, typename T>
     constexpr Vector<N, T> operator-(const Vector<N, T>& v1, const Vector<N, T>& v2);
     template <size_t N, typename T, typename S>
     constexpr Vector<N, T> operator-(const Vector<N, T>& v1, S scalar);
+    template <size_t N, typename T, typename S>
+    constexpr Vector<N, T> operator-(S scalar, const Vector<N, T>& v);
 
     template <size_t N, typename T>
     constexpr Vector<N, T> operator*(const Vector<N, T>& v1, const Vector<N, T>& v2);
     template <size_t N, typename T, typename S>
     constexpr Vector<N, T> operator*(const Vector<N, T>& v1, S scalar);
+    template <size_t N, typename T, typename S>
+    constexpr Vector<N, T> operator*(S scalar, const Vector<N, T>& v);
 
     template <size_t N, typename T>
     constexpr Vector<N, T> operator/(const Vector<N, T>& v1, const Vector<N, T>& v2);
     template <size_t N, typename T, typename S>
     constexpr Vector<N, T> operator/(const Vector<N, T>& v1, S scalar);
+    template <size_t N, typename T, typename S>
+    constexpr Vector<N, T> operator/(S scalar, const Vector<N, T>& v);
 
     template <size_t N, typename T>
     constexpr Vector<N, T> operator-(const Vector<N, T>& v);
