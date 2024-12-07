@@ -513,9 +513,8 @@ namespace sgl
                 }
                 
                 vec3 phongColor = closestPrimitive ?
-                    // calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection)) :
+                    calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection), math::normalize(vec3(originWorld) - closestIntersection)) :
                     // (closestPrimitive->getMaterial().color) :
-                    (closestPrimitive->getMaterial().color) :
                     m_clearColor;
 
                 putPixel(vec3(xp, yp, 0), phongColor);
@@ -530,7 +529,7 @@ namespace sgl
 
     void Context::addPointLight(PointLight&& pl)
     {
-        m_sceneLights.push_back(pl);
+        m_sceneLights.emplace_back(std::move(pl));
     }
 
     vec3 normalize(const vec3 &v)
@@ -546,7 +545,7 @@ namespace sgl
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
-    vec3 Context::calculatePhong(const Material &material, const vec3 &cameraDir, const vec3 &surfaceNormal)
+    vec3 Context::calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir)
     {
         
         vec3 result(0.0f, 0.0f, 0.0f);  
