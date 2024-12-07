@@ -239,6 +239,47 @@ namespace sgl
         putPixelRowDepth(start.x, end.x, start.y, start.z, end.z, color);
     }
 
+    vec3 Context::castRay(const Ray& ray, int depth) const 
+    {   
+        if (depth > Ray::MAX_DEPTH)
+        {
+            return m_clearColor;
+        }
+
+        vec3 resultColor;
+
+        auto [anyHit, hitPoint, hitPrimitive] = traceRay(ray);
+        
+        if (anyHit)
+        {
+            resultColor = anyHit ?
+                calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), ray.origin) :
+                m_clearColor;
+        }
+
+        return resultColor;
+    }
+
+    Context::TraceRayResult Context::traceRay(const Ray& ray) const 
+    {
+        std::shared_ptr<Primitive> closestPrimitive = nullptr;
+        vec3 closestIntersection;
+        float closestDistance = std::numeric_limits<float>::max();
+        for (const auto& primitive : m_scenePrimitives)
+        {
+            auto [isIntersected, point] = primitive->intersect(ray);
+            float distance = math::distance(ray.origin, point);
+            if (isIntersected && distance <= closestDistance && distance > 0.1)
+            {
+                closestDistance = distance;
+                closestIntersection = point;
+                closestPrimitive = primitive;
+            }
+        }
+
+        return { closestPrimitive != nullptr, closestIntersection, closestPrimitive };
+    }
+
     void Context::beginPrimitive(uint32_t elementType) 
     {
         m_elementType = elementType;
@@ -498,27 +539,9 @@ namespace sgl
                 vec3 rayDir = math::normalize(vec3(pixelWorld) - vec3(originWorld));
                 Ray primary(originWorld, rayDir);
 
-                std::shared_ptr<Primitive> closestPrimitive = nullptr;
-                vec3 closestIntersection;
-                float closestDistance = std::numeric_limits<float>::max();
-                for (const auto& primitive : m_scenePrimitives)
-                {
-                    auto [isIntersected, point] = primitive->intersect(primary);
-                    float distance = math::distance(vec3(originWorld), point);
-                    if (isIntersected && distance <= closestDistance)
-                    {
-                        closestDistance = distance;
-                        closestIntersection = point;
-                        closestPrimitive = primitive;
-                    }
-                }
-                
-                vec3 phongColor = closestPrimitive ?
-                    calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection), math::normalize(vec3(originWorld) - closestIntersection)) :
-                    // (closestPrimitive->getMaterial().color) :
-                    m_clearColor;
+                vec3 color = castRay(primary);
 
-                putPixel(vec3(xp, yp, 0), phongColor);
+                putPixel(vec3(xp, yp, 0), color);
             }
         }
     }
@@ -559,13 +582,14 @@ namespace sgl
             specular = specular + (light.getColor() * material.ks * spec);
         }
 
-        //sum
-        result = diffuse + specular;
+            vec3 specular = vec3(1) * material.ks * std::pow( std::max( math::dotProduct(r, v), .0f ), material.shine );
 
-        //[0, 1]
-        result.x = std::fmax(0.0f, std::fmin(1.0f, result.x));
-        result.y = std::fmax(0.0f, std::fmin(1.0f, result.y));
-        result.z = std::fmax(0.0f, std::fmin(1.0f, result.z));
+            Ray lightRay(intersectionPoint, l);
+            auto [anyHit, hitPoint, _] =  traceRay(lightRay);
+            bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint));
+
+            resultColor += (1 - isObstructed) * (diffuse + specular);
+        }
 
         return result;
     }

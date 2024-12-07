@@ -15,6 +15,7 @@ public:
     Light(const vec3& color);
 
     // Return direction towards light
+    virtual bool isObstructed(const vec3& point, const vec3& hit) const = 0;
     virtual const vec3& getDirection(const vec3& from) const = 0;
     const vec3& getColor() const;
 
@@ -30,6 +31,7 @@ public:
     PointLight(const vec3& pos, const vec3& color);
 
     virtual const vec3& getDirection(const vec3& from) const;
+    virtual bool isObstructed(const vec3& point, const vec3& middle) const;
 
 private:
     vec3 m_pos;
@@ -43,6 +45,7 @@ public:
     DirectionalLight(const vec3& dir, const vec3& color);
 
     virtual const vec3& getDirection(const vec3& from) const;
+    virtual bool isObstructed(const vec3& point, const vec3& middle) const;
 
 private:
     vec3 m_dir;

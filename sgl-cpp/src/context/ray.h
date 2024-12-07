@@ -7,6 +7,8 @@ namespace sgl
 
     struct Ray
     {
+        const static unsigned MAX_DEPTH = 8;
+
         Ray(const Ray&) = default;
         Ray(Ray&&) = default;
         Ray() = delete;
@@ -19,3 +21,4 @@ namespace sgl
     };
 
 }
+
