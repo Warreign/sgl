@@ -533,12 +533,59 @@ namespace sgl
         m_sceneLights.push_back(pl);
     }
 
-    vec3 Context::calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal) 
+    vec3 normalize(const vec3 &v)
     {
-        return m_clearColor;
+        float length = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        if (length == 0.0f) return vec3(0.0f, 0.0f, 0.0f); 
+        return vec3(v.x / length, v.y / length, v.z / length);
     }
 
-    void Context::addSphere(const vec3& center, float radius)
+    // Producto punto de dos vectores
+    float dot(const vec3 &a, const vec3 &b)
+    {
+        return a.x * b.x + a.y * b.y + a.z * b.z;
+    }
+
+    vec3 Context::calculatePhong(const Material &material, const vec3 &cameraDir, const vec3 &surfaceNormal)
+    {
+        
+        vec3 result(0.0f, 0.0f, 0.0f);  
+        vec3 ambient(0.0f, 0.0f, 0.0f);  
+        vec3 diffuse(0.0f, 0.0f, 0.0f);  
+        vec3 specular(0.0f, 0.0f, 0.0f); 
+
+        //scene light iteration
+        for (const auto &lightBase : m_sceneLights)
+        {
+            //casting
+            const PointLight &light = static_cast<const PointLight&>(lightBase);
+
+            vec3 lightDir = normalize(light.getPosition() - cameraDir);
+
+            vec3 reflectedDir = normalize(surfaceNormal * (2.0f * dot(surfaceNormal, lightDir)) - lightDir);
+
+            ambient = ambient + (light.getColor() * material.color * material.kd);
+
+            float diff = std::fmax(0.0f, dot(surfaceNormal, lightDir));
+
+            diffuse = diffuse + (light.getColor() * material.color * material.kd * diff);
+
+            float spec = std::pow(std::fmax(0.0f, dot(cameraDir, reflectedDir)), material.shine);
+            specular = specular + (light.getColor() * material.ks * spec);
+        }
+
+        //sum
+        result = ambient + diffuse + specular;
+
+        //[0, 1]
+        result.x = std::fmax(0.0f, std::fmin(1.0f, result.x));
+        result.y = std::fmax(0.0f, std::fmin(1.0f, result.y));
+        result.z = std::fmax(0.0f, std::fmin(1.0f, result.z));
+
+        return result;
+    }
+
+    void Context::addSphere(const vec3 &center, float radius)
     {
         m_scenePrimitives.emplace_back(std::make_shared<Sphere>(m_currentMaterial, center, radius));
     }
