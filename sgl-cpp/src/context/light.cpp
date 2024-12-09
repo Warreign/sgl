@@ -22,7 +22,7 @@ const vec3& Light::getColor() const
     return m_color;
 }
 
-const vec3& PointLight::getDirection(const vec3& from) const 
+vec3 PointLight::getDirection(const vec3& from) const 
 {
     return math::normalize(m_pos - from);    
 }
@@ -39,7 +39,7 @@ DirectionalLight::DirectionalLight(const vec3& dir, const vec3& color)
     
 }
 
-const vec3& DirectionalLight::getDirection(const vec3& from) const 
+vec3 DirectionalLight::getDirection(const vec3& from) const 
 {
     return -m_dir;
 }

@@ -260,7 +260,7 @@ namespace sgl
             // vec3 refracted = castRay(Ray(hitPoint, refractedDir), depth +1);
             vec3 refracted = vec3();
         
-            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), vec3(ray.origin) - hitPoint);
+            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint));
 
             return resultColor;
         }
@@ -617,11 +617,11 @@ namespace sgl
 
             specular = (light->getColor() * material.ks * spec);
 
-            // Ray lightRay(intersectionPoint, lightDir);
-            // auto [anyHit, hitPoint, _] =  traceRay(lightRay, nullptr);
-            // bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint));
+            Ray lightRay(intersectionPoint, lightDir);
+            auto [anyHit, hitPoint, _] =  traceRay(lightRay, nullptr);
+            bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint));
 
-            result += (1) * (diffuse + specular);
+            result += (1 -  isObstructed) * (diffuse + specular);
         }
 
         return result;
