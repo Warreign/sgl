@@ -67,9 +67,7 @@ public:
     bool isSpecifyingScene() const;
     void renderScene();
     void setCurrentMaterial(const Material& material);
-    void addPointLight(PointLight&& pl);
-    // Returns color of a pixel according to phong model
-    vec3 calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir);
+    void addLight(std::shared_ptr<Light> light);
     void addSphere(const vec3& center, float radius);
 //
     
@@ -95,6 +93,19 @@ private:
     inline void putPixelRowDepth(int startX, int endX, int y, float startZ, float endZ, const vec3& color);
     inline void putPixelRow(const vec3& start, const vec3& end, const vec3& color);
     inline void putPixelRowDepth(const vec3& start, const vec3& end, const vec3& color);
+//
+
+// Ray tracing
+    struct TraceRayResult
+    {
+        bool anyHit;
+        vec3 hitPoint;
+        std::shared_ptr<Primitive> hitPrimitive;
+    };
+    vec3 castRay(const Ray& ray, int depth = 0) const;
+    Context::TraceRayResult traceRay(const Ray& ray, float eps = 0) const;
+    // Returns color of a pixel according to phong model
+    vec3 calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera) const;
 //
 
 // Primitive rendering
@@ -148,7 +159,7 @@ private:
     // Scene data
     bool m_isSpecifyingScene;
     std::vector<std::shared_ptr<Primitive>> m_scenePrimitives;
-    std::vector<PointLight> m_sceneLights;
+    std::vector<std::shared_ptr<Light>> m_sceneLights;
     Material m_currentMaterial;
 
 };

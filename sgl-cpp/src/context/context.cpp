@@ -1,5 +1,6 @@
 #include "context.h"
 
+#include "light.h"
 #include "math/transform.h"
 #include "math/utils.h"
 #include "primitive.h"
@@ -236,6 +237,75 @@ namespace sgl
     void Context::putPixelRowDepth(const vec3& start, const vec3& end, const vec3& color)
     {
         putPixelRowDepth(start.x, end.x, start.y, start.z, end.z, color);
+    }
+
+    vec3 Context::castRay(const Ray& ray, int depth) const 
+    {   
+        if (depth > Ray::MAX_DEPTH)
+        {
+            return m_clearColor;
+        }
+
+        vec3 resultColor;
+
+        auto [anyHit, hitPoint, hitPrimitive] = traceRay(ray);
+
+        if (anyHit)
+        {
+            vec3 normal = hitPrimitive->getNormal(hitPoint);
+            
+            if (ray.type == Ray::Type::INSIDE)
+            {
+                normal = -normal;
+            }
+
+            vec3 reflected = vec3(0);
+            if (hitPrimitive->getMaterial().ks != 0) {
+                vec3 reflectedDir = math::reflect(ray.dir, normal);
+                reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir, ray.type), depth+1);
+            }
+
+            vec3 refracted = vec3(0);
+            if (hitPrimitive->getMaterial().T != 0) {
+                Ray::Type rayType = ray.type == Ray::Type::INSIDE ? Ray::Type::NORMAL : Ray::Type::INSIDE;
+                vec3 refractedDir = math::refract( ray.dir, -normal, hitPrimitive->getMaterial().ior);
+                refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.001, refractedDir, rayType), depth + 1);
+            }
+        
+            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, normal, math::normalize(vec3(ray.origin) - hitPoint));
+
+            return resultColor + reflected + refracted;
+        }
+        return m_clearColor;
+    }
+
+    Context::TraceRayResult Context::traceRay(const Ray& ray, float eps) const 
+    {
+        std::shared_ptr<Primitive> closestPrimitive = nullptr;
+        vec3 closestIntersection;
+        float closestDistance = std::numeric_limits<float>::max();
+    
+        for (const auto& primitive : m_scenePrimitives)
+        {
+            auto [isIntersected, point] = primitive->intersect(ray);
+
+            if (isIntersected)
+            {
+                if ( ray.type != Ray::Type::INSIDE && math::dotProduct(ray.dir, primitive->getNormal(point)) > 0    )
+                {
+                    continue;
+                }
+                float distance = math::distance(ray.origin, point);
+                if (distance <= closestDistance)
+                {
+                    closestDistance = distance;
+                    closestIntersection = point;
+                    closestPrimitive = primitive;
+                }
+            }
+        }
+
+        return { closestPrimitive != nullptr, closestIntersection, closestPrimitive };
     }
 
     void Context::beginPrimitive(uint32_t elementType) 
@@ -482,6 +552,15 @@ namespace sgl
 
     void Context::renderScene()
     {
+        std::shared_ptr<Light> directional = std::make_shared<DirectionalLight>(vec3(-1, -2, 3), vec3(1));
+        // addLight(directional);
+
+        // PointLight* pl = dynamic_cast<PointLight*>(m_sceneLights[0].get());
+        // pl->m_pos.y -= 300;
+
+        // setMatrixMode(SGL_MODELVIEW);
+        // getCurrentMat() *= translate(0,0,250);
+
         mat4 invModelView = getModelView().inverse();
         mat4 invPVM = m_PVM.inverse();
 
@@ -497,27 +576,9 @@ namespace sgl
                 vec3 rayDir = math::normalize(vec3(pixelWorld) - vec3(originWorld));
                 Ray primary(originWorld, rayDir);
 
-                std::shared_ptr<Primitive> closestPrimitive = nullptr;
-                vec3 closestIntersection;
-                float closestDistance = std::numeric_limits<float>::max();
-                for (const auto& primitive : m_scenePrimitives)
-                {
-                    auto [isIntersected, point] = primitive->intersect(primary);
-                    float distance = math::distance(vec3(originWorld), point);
-                    if (isIntersected && distance <= closestDistance)
-                    {
-                        closestDistance = distance;
-                        closestIntersection = point;
-                        closestPrimitive = primitive;
-                    }
-                }
-                
-                vec3 phongColor = closestPrimitive ?
-                    calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection), math::normalize(vec3(originWorld) - closestIntersection)) :
-                    // (closestPrimitive->getMaterial().color) :
-                    m_clearColor;
+                vec3 color = castRay(primary);
 
-                putPixel(vec3(xp, yp, 0), phongColor);
+                putPixel(vec3(xp, yp, 0), color);
             }
         }
     }
@@ -527,57 +588,45 @@ namespace sgl
         m_currentMaterial = material;
     }
 
-    void Context::addPointLight(PointLight&& pl)
+    void Context::addLight(std::shared_ptr<Light> light)
     {
-        m_sceneLights.emplace_back(std::move(pl));
+        m_sceneLights.push_back(light);
     }
 
-    vec3 normalize(const vec3 &v)
+    vec3 Context::calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera) const
     {
-        float length = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
-        if (length == 0.0f) return vec3(0.0f, 0.0f, 0.0f); 
-        return vec3(v.x / length, v.y / length, v.z / length);
-    }
-
-    // Producto punto de dos vectores
-    float dot(const vec3 &a, const vec3 &b)
-    {
-        return a.x * b.x + a.y * b.y + a.z * b.z;
-    }
-
-    vec3 Context::calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir)
-    {
-        
         vec3 result(0.0f, 0.0f, 0.0f);    
-        vec3 diffuse(0.0f, 0.0f, 0.0f);  
-        vec3 specular(0.0f, 0.0f, 0.0f); 
 
         //scene light iteration
-        for (const auto &lightBase : m_sceneLights)
+        for (std::shared_ptr<Light> light : m_sceneLights)
         {
+            vec3 diffuse(0.0f, 0.0f, 0.0f);  
+            vec3 specular(0.0f, 0.0f, 0.0f); 
             //casting
-            const PointLight &light = static_cast<const PointLight&>(lightBase);
 
-            vec3 lightDir = normalize(light.getPosition() - intersectionPoint);
+            vec3 lightDir = math::normalize(light->getDirection(intersectionPoint));
 
-            vec3 reflectedDir = normalize(surfaceNormal * (2.0f * dot(surfaceNormal, lightDir)) - lightDir);
+            Ray lightRay(intersectionPoint, lightDir);
+            auto [anyHit, hitPoint, _] =  traceRay(lightRay);
+            bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint + lightDir * 0.002));
 
-            float diff = std::fmax(0.0f, dot(surfaceNormal, lightDir));
+            if (isObstructed)
+            {
+                continue;
+            }
 
-            diffuse = diffuse + (light.getColor() * material.color * material.kd * diff);
+            vec3 reflectedDir = math::normalize(surfaceNormal * (2.0f * math::dotProduct(surfaceNormal, lightDir)) - lightDir);
 
-            float spec = std::pow(std::fmax(0.0f, dot(cameraDir, reflectedDir)), material.shine);
+            float diff = std::fmax(0.0f, math::dotProduct(surfaceNormal, lightDir));
 
-            specular = specular + (light.getColor() * material.ks * spec);
+            diffuse = (light->getColor() * material.color * material.kd * diff);
+
+            float spec = std::pow(std::fmax(0.0f, math::dotProduct(camera, reflectedDir)), material.shine);
+
+            specular = (light->getColor() * material.ks * spec);
+
+            result += (diffuse + specular);
         }
-
-        //sum
-        result = diffuse + specular;
-
-        //[0, 1]
-        result.x = std::fmax(0.0f, std::fmin(1.0f, result.x));
-        result.y = std::fmax(0.0f, std::fmin(1.0f, result.y));
-        result.z = std::fmax(0.0f, std::fmin(1.0f, result.z));
 
         return result;
     }
