@@ -248,43 +248,28 @@ namespace sgl
 
         vec3 resultColor;
 
-        auto [anyHit, hitPoint, hitPrimitive] = traceRay(ray, nullptr);
+        auto [anyHit, hitPoint, hitPrimitive] = traceRay(ray);
 
         if (anyHit)
         {
             vec3 normal = hitPrimitive->getNormal(hitPoint);
-
-            vec3 reflectedDir = vec3(0);
-            vec3 reflected = vec3(0);
-            if (hitPrimitive->getMaterial().ks != 0) {
-                vec3 L = ray.origin - hitPoint;
-                reflectedDir = math::normalize(normal * (2.0f * math::dotProduct(normal, L)) - L);
-                reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir), depth+1);
+            
+            if (ray.type == Ray::Type::INSIDE)
+            {
+                normal = -normal;
             }
 
-            vec3 refractedDir = vec3(0);
+            vec3 reflected = vec3(0);
+            if (hitPrimitive->getMaterial().ks != 0) {
+                vec3 reflectedDir = math::reflect(ray.dir, normal);
+                reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir, ray.type), depth+1);
+            }
+
             vec3 refracted = vec3(0);
             if (hitPrimitive->getMaterial().T != 0) {
-                float gamma, sqrterm;
-                float dot = math::dotProduct(ray.dir, normal);
-
-                if (dot < 0) {
-                    gamma = 1.0 / hitPrimitive->getMaterial().ior;
-                }
-                else {
-                    gamma = hitPrimitive->getMaterial().ior;
-                    dot = -dot;
-                    normal = -normal;
-                }
-
-                sqrterm = 1.0 - gamma * gamma * (1.0 - dot * dot);
-
-                if (sqrterm > 0.0) {
-                    sqrterm = dot * gamma + sqrt(sqrterm);
-                    refractedDir =  math::normalize(-sqrterm * normal + ray.dir * gamma);
-                    Ray::Type rayType = ray.type == Ray::Type::NORMAL ? Ray::Type::INSIDE : Ray::Type::NORMAL;
-                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.001, refractedDir, rayType), depth + 1); // tady asi n�jakou konstantu kouzelnou, bez n� je ta koule prav� cel� �ern�
-                }
+                Ray::Type rayType = ray.type == Ray::Type::INSIDE ? Ray::Type::NORMAL : Ray::Type::INSIDE;
+                vec3 refractedDir = math::refract( ray.dir, -normal, hitPrimitive->getMaterial().ior);
+                refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.001, refractedDir, rayType), depth + 1);
             }
         
             resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, normal, math::normalize(vec3(ray.origin) - hitPoint));
@@ -294,30 +279,19 @@ namespace sgl
         return m_clearColor;
     }
 
-    Context::TraceRayResult Context::traceRay(const Ray& ray, std::shared_ptr<Primitive> fromPrimitive, float eps) const 
+    Context::TraceRayResult Context::traceRay(const Ray& ray, float eps) const 
     {
         std::shared_ptr<Primitive> closestPrimitive = nullptr;
         vec3 closestIntersection;
         float closestDistance = std::numeric_limits<float>::max();
     
-        if (fromPrimitive && math::dotProduct(fromPrimitive->getNormal(ray.origin), ray.dir) < 0)
-        {
-            return { true, ray.origin, fromPrimitive };
-        }
-
         for (const auto& primitive : m_scenePrimitives)
         {
-
-            if (fromPrimitive == primitive)
-            {
-                continue;
-            }
-
             auto [isIntersected, point] = primitive->intersect(ray);
 
             if (isIntersected)
             {
-                if (math::dotProduct(ray.dir, primitive->getNormal(point)) >= 0 && ray.type != Ray::Type::INSIDE)
+                if ( ray.type != Ray::Type::INSIDE && math::dotProduct(ray.dir, primitive->getNormal(point)) > 0    )
                 {
                     continue;
                 }
@@ -588,8 +562,6 @@ namespace sgl
         // getCurrentMat() *= translate(0,0,250);
 
         mat4 invModelView = getModelView().inverse();
-        // mat4 invPVM = getModelView().inverse() * getProjection().inverse() * m_viewport.inverse();
-        // updatePVM();
         mat4 invPVM = m_PVM.inverse();
 
         vec4 originWorld = invModelView * vec4(0, 0, 0, 1);
@@ -634,6 +606,15 @@ namespace sgl
 
             vec3 lightDir = math::normalize(light->getDirection(intersectionPoint));
 
+            Ray lightRay(intersectionPoint, lightDir);
+            auto [anyHit, hitPoint, _] =  traceRay(lightRay);
+            bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint + lightDir * 0.002));
+
+            if (isObstructed)
+            {
+                continue;
+            }
+
             vec3 reflectedDir = math::normalize(surfaceNormal * (2.0f * math::dotProduct(surfaceNormal, lightDir)) - lightDir);
 
             float diff = std::fmax(0.0f, math::dotProduct(surfaceNormal, lightDir));
@@ -644,12 +625,7 @@ namespace sgl
 
             specular = (light->getColor() * material.ks * spec);
 
-            Ray lightRay(intersectionPoint, lightDir);
-            auto [anyHit, hitPoint, _] =  traceRay(lightRay, nullptr);
-            bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint + lightDir * 0.001));
-
-
-            result += (1 -  isObstructed) * (diffuse + specular);
+            result += (diffuse + specular);
         }
 
         return result;

@@ -103,7 +103,7 @@ private:
         std::shared_ptr<Primitive> hitPrimitive;
     };
     vec3 castRay(const Ray& ray, int depth = 0) const;
-    Context::TraceRayResult traceRay(const Ray& ray, std::shared_ptr<Primitive> fromPrimitive, float eps = 0) const;
+    Context::TraceRayResult traceRay(const Ray& ray, float eps = 0) const;
     // Returns color of a pixel according to phong model
     vec3 calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera) const;
 //
