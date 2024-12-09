@@ -84,9 +84,9 @@ namespace sgl
                 {
                     if (ipiv[k] == 0)
                     {
-                        if (fabs(ret[k][j]) >= big)
+                        if (std::abs(ret[k][j]) >= big)
                         {
-                            big = fabs(ret[k][j]);
+                            big = std::abs(ret[k][j]);
                             irow = j;
                             icol = k;
                         }

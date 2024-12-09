@@ -7,6 +7,7 @@
 #include <iomanip>
 
 #pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 
 namespace sgl 
 {
