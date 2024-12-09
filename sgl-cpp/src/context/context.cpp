@@ -548,8 +548,7 @@ namespace sgl
     vec3 Context::calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir)
     {
         
-        vec3 result(0.0f, 0.0f, 0.0f);  
-        vec3 ambient(0.0f, 0.0f, 0.0f);  
+        vec3 result(0.0f, 0.0f, 0.0f);    
         vec3 diffuse(0.0f, 0.0f, 0.0f);  
         vec3 specular(0.0f, 0.0f, 0.0f); 
 
@@ -559,22 +558,21 @@ namespace sgl
             //casting
             const PointLight &light = static_cast<const PointLight&>(lightBase);
 
-            vec3 lightDir = normalize(light.getPosition() - cameraDir);
+            vec3 lightDir = normalize(light.getPosition() - intersectionPoint);
 
             vec3 reflectedDir = normalize(surfaceNormal * (2.0f * dot(surfaceNormal, lightDir)) - lightDir);
-
-            ambient = ambient + (light.getColor() * material.color * material.kd);
 
             float diff = std::fmax(0.0f, dot(surfaceNormal, lightDir));
 
             diffuse = diffuse + (light.getColor() * material.color * material.kd * diff);
 
             float spec = std::pow(std::fmax(0.0f, dot(cameraDir, reflectedDir)), material.shine);
+
             specular = specular + (light.getColor() * material.ks * spec);
         }
 
         //sum
-        result = ambient + diffuse + specular;
+        result = diffuse + specular;
 
         //[0, 1]
         result.x = std::fmax(0.0f, std::fmin(1.0f, result.x));
