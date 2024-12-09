@@ -33,8 +33,10 @@ public:
     virtual const vec3& getDirection(const vec3& from) const;
     virtual bool isObstructed(const vec3& point, const vec3& middle) const;
 
-private:
+    // friend Context;
+
     vec3 m_pos;
+private:
 };
 
 class DirectionalLight : public Light

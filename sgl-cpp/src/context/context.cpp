@@ -248,32 +248,58 @@ namespace sgl
 
         vec3 resultColor;
 
-        auto [anyHit, hitPoint, hitPrimitive] = traceRay(ray);
-        
+
+        auto [anyHit, hitPoint, hitPrimitive] = traceRay(ray, nullptr);
+
         if (anyHit)
         {
-            resultColor = anyHit ?
-                calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), ray.origin) :
-                m_clearColor;
-        }
+        vec3 reflectedDir = vec3(0);
+        vec3 reflected = castRay(Ray(hitPoint, reflectedDir), depth+1);
 
-        return resultColor;
+        vec3 refractedDir = vec3();
+        vec3 refracted = castRay(Ray(hitPoint, refractedDir), depth +1);
+        
+            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), ray.origin, hitPrimitive);
+
+        return resultColor +  hitPrimitive->getMaterial().ks * reflected + hitPrimitive->getMaterial().T * refracted;
+        }
+        return m_clearColor;
     }
 
-    Context::TraceRayResult Context::traceRay(const Ray& ray) const 
+    Context::TraceRayResult Context::traceRay(const Ray& ray, std::shared_ptr<Primitive> fromPrimitive, float eps) const 
     {
         std::shared_ptr<Primitive> closestPrimitive = nullptr;
         vec3 closestIntersection;
         float closestDistance = std::numeric_limits<float>::max();
+        
+        if (fromPrimitive && math::dotProduct(fromPrimitive->getNormal(ray.origin), ray.dir) < 0)
+        {
+            return { true, ray.origin, fromPrimitive };
+        }
+
         for (const auto& primitive : m_scenePrimitives)
         {
-            auto [isIntersected, point] = primitive->intersect(ray);
-            float distance = math::distance(ray.origin, point);
-            if (isIntersected && distance <= closestDistance && distance > 0.1)
+
+            if (fromPrimitive == primitive)
             {
-                closestDistance = distance;
-                closestIntersection = point;
-                closestPrimitive = primitive;
+                continue;
+            }
+
+            auto [isIntersected, point] = primitive->intersect(ray);
+
+            if (isIntersected)
+            {
+                if (math::dotProduct(ray.dir, primitive->getNormal(point)) >= 0)
+                {
+                    continue;
+                }
+                float distance = math::distance(ray.origin, point);
+                if (distance <= closestDistance)
+                {
+                    closestDistance = distance;
+                    closestIntersection = point;
+                    closestPrimitive = primitive;
+                }
             }
         }
 
@@ -524,7 +550,18 @@ namespace sgl
 
     void Context::renderScene()
     {
+        std::shared_ptr<Light> directional = std::make_shared<DirectionalLight>(vec3(-1, -2, 3), vec3(1));
+        // addLight(directional);
+
+        PointLight* pl = dynamic_cast<PointLight*>(m_sceneLights[0].get());
+        pl->m_pos.y -= 300;
+
+        // setMatrixMode(SGL_MODELVIEW);
+        // getCurrentMat() *= translate(0,0,250);
+
         mat4 invModelView = getModelView().inverse();
+        // mat4 invPVM = getModelView().inverse() * getProjection().inverse() * m_viewport.inverse();
+        // updatePVM();
         mat4 invPVM = m_PVM.inverse();
 
         vec4 originWorld = invModelView * vec4(0, 0, 0, 1);
@@ -585,7 +622,7 @@ namespace sgl
             vec3 specular = vec3(1) * material.ks * std::pow( std::max( math::dotProduct(r, v), .0f ), material.shine );
 
             Ray lightRay(intersectionPoint, l);
-            auto [anyHit, hitPoint, _] =  traceRay(lightRay);
+            auto [anyHit, hitPoint, _] =  traceRay(lightRay, primitive);
             bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint));
 
             resultColor += (1 - isObstructed) * (diffuse + specular);
