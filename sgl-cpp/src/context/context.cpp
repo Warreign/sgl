@@ -537,6 +537,42 @@ namespace sgl
         return m_clearColor;
     }
 
+    vec3 Context::calculateCookTorrance(const Material& material, const vec3& intersectionPoint, const vec3& cameraLocationPoint, const vec3& lightLocationPoint, const vec3& lightColor, const vec3& surfaceNormal)
+    {
+        // Diffuse Reflection
+        vec3 Rd = (material.color / M_PI) * material.kd;
+
+        // Specular Reflection
+        ////  Fresnel Term
+        vec3 V = math::normalize((cameraLocationPoint - intersectionPoint));
+        vec3 L = math::normalize((lightLocationPoint - intersectionPoint));
+        vec3 H = math::normalize(V + L);
+        float F0 = pow(((material.ior - 1) / (material.ior + 1)), 2);
+        float F = F0 + (1 - F0) * pow((1 - math::dotProduct(V, H)), 5);
+
+        //// Microfacet Distribution Function
+        float m = 1 / sqrt(material.shine);
+        float alpha = acos(math::dotProduct(surfaceNormal, H));
+        float D = (exp(-pow(tan(alpha), 2) / pow(m, 2))) / (M_PI * pow(m, 2) * pow(cos(alpha), 4));
+
+        //// Geometric Attenuation Factor
+        float G = std::min((float)1, (2 * math::dotProduct(surfaceNormal, H) * math::dotProduct(surfaceNormal, V) / (math::dotProduct(V, H))),
+            (2 * math::dotProduct(surfaceNormal, H) * math::dotProduct(surfaceNormal, L) / (math::dotProduct(V, H))));
+        float Rs = (F * D * G) / (M_PI * math::dotProduct(surfaceNormal, L) * math::dotProduct(surfaceNormal, V));
+
+        // Total Reflectance
+        float Rsks = material.ks * Rs;
+        vec3 R = Rd * material.kd;
+        R.x += Rsks;
+        R.y += Rsks;
+        R.z += Rsks;
+
+        // Intensity of Reflected Light 
+        vec3 Ir = lightColor * R;
+
+        return Ir;
+    }
+
     void Context::addSphere(const vec3& center, float radius)
     {
         m_scenePrimitives.emplace_back(std::make_shared<Sphere>(m_currentMat, center, radius));

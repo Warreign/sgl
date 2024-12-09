@@ -70,6 +70,7 @@ public:
     void addPointLight(PointLight&& pl);
     // Returns color of a pixel according to phong model
     vec3 calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal);
+    vec3 calculateCookTorrance(const Material& material, const vec3& intersectionPoint, const vec3& cameraLocationPoint, const vec3& lightLocationPoint, const vec3& lightColor, const vec3& surfaceNormal);
     void addSphere(const vec3& center, float radius);
 //
     
