@@ -253,16 +253,41 @@ namespace sgl
         if (anyHit)
         {
             vec3 reflectedDir = vec3(0);
-            // vec3 reflected = castRay(Ray(hitPoint, reflectedDir), depth+1);
-            vec3 reflected = vec3();
+            vec3 reflected = vec3(0);
+            if (hitPrimitive->getMaterial().ks != 0) {
+                vec3 L = ray.origin - hitPoint;
+                reflectedDir = math::normalize(hitPrimitive->getNormal(hitPoint) * (2.0f * math::dotProduct(hitPrimitive->getNormal(hitPoint), L)) - L);
+                reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir), depth+1);
+            }
 
-            vec3 refractedDir = vec3();
-            // vec3 refracted = castRay(Ray(hitPoint, refractedDir), depth +1);
-            vec3 refracted = vec3();
+            vec3 refractedDir = vec3(0);
+            vec3 refracted = vec3(0);
+            if (hitPrimitive->getMaterial().T != 0) {
+                float gamma, sqrterm;
+                vec3 normal = hitPrimitive->getNormal(hitPoint);
+                float dot = math::dotProduct(ray.dir, normal);
+
+                if (dot < 0) {
+                    gamma = 1.0 / hitPrimitive->getMaterial().ior;
+                }
+                else {
+                    gamma = hitPrimitive->getMaterial().ior;
+                    dot = -dot;
+                    normal = -normal;
+                }
+
+                sqrterm = 1.0 - gamma * gamma * (1.0 - dot * dot);
+
+                if (sqrterm > 0.0) {
+                    sqrterm = dot * gamma + sqrt(sqrterm);
+                    refractedDir = -sqrterm * normal + ray.dir * gamma;
+                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint - normal * 1/10000, refractedDir), depth + 1); // tady asi nìjakou konstantu kouzelnou, bez ní je ta koule pravá celá èerná
+                }
+            }
         
             resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint));
 
-            return resultColor;
+            return resultColor + reflected + refracted;
         }
         return vec3();
     }
@@ -620,6 +645,7 @@ namespace sgl
             Ray lightRay(intersectionPoint, lightDir);
             auto [anyHit, hitPoint, _] =  traceRay(lightRay, nullptr);
             bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint));
+
 
             result += (1 -  isObstructed) * (diffuse + specular);
         }
