@@ -252,11 +252,13 @@ namespace sgl
 
         if (anyHit)
         {
+            vec3 normal = hitPrimitive->getNormal(hitPoint);
+
             vec3 reflectedDir = vec3(0);
             vec3 reflected = vec3(0);
             if (hitPrimitive->getMaterial().ks != 0) {
                 vec3 L = ray.origin - hitPoint;
-                reflectedDir = math::normalize(hitPrimitive->getNormal(hitPoint) * (2.0f * math::dotProduct(hitPrimitive->getNormal(hitPoint), L)) - L);
+                reflectedDir = math::normalize(normal * (2.0f * math::dotProduct(normal, L)) - L);
                 reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir), depth+1);
             }
 
@@ -264,7 +266,6 @@ namespace sgl
             vec3 refracted = vec3(0);
             if (hitPrimitive->getMaterial().T != 0) {
                 float gamma, sqrterm;
-                vec3 normal = hitPrimitive->getNormal(hitPoint);
                 float dot = math::dotProduct(ray.dir, normal);
 
                 if (dot < 0) {
@@ -280,16 +281,17 @@ namespace sgl
 
                 if (sqrterm > 0.0) {
                     sqrterm = dot * gamma + sqrt(sqrterm);
-                    refractedDir = -sqrterm * normal + ray.dir * gamma;
-                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint - normal * 1/10000, refractedDir), depth + 1); // tady asi nìjakou konstantu kouzelnou, bez ní je ta koule pravá celá èerná
+                    refractedDir =  math::normalize(-sqrterm * normal + ray.dir * gamma);
+                    Ray::Type rayType = ray.type == Ray::Type::NORMAL ? Ray::Type::INSIDE : Ray::Type::NORMAL;
+                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.001, refractedDir, rayType), depth + 1); // tady asi nï¿½jakou konstantu kouzelnou, bez nï¿½ je ta koule pravï¿½ celï¿½ ï¿½ernï¿½
                 }
             }
         
-            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint));
+            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, normal, math::normalize(vec3(ray.origin) - hitPoint));
 
             return resultColor + reflected + refracted;
         }
-        return vec3();
+        return m_clearColor;
     }
 
     Context::TraceRayResult Context::traceRay(const Ray& ray, std::shared_ptr<Primitive> fromPrimitive, float eps) const 
@@ -297,7 +299,7 @@ namespace sgl
         std::shared_ptr<Primitive> closestPrimitive = nullptr;
         vec3 closestIntersection;
         float closestDistance = std::numeric_limits<float>::max();
-        
+    
         if (fromPrimitive && math::dotProduct(fromPrimitive->getNormal(ray.origin), ray.dir) < 0)
         {
             return { true, ray.origin, fromPrimitive };
@@ -315,7 +317,7 @@ namespace sgl
 
             if (isIntersected)
             {
-                if (math::dotProduct(ray.dir, primitive->getNormal(point)) >= 0)
+                if (math::dotProduct(ray.dir, primitive->getNormal(point)) >= 0 && ray.type != Ray::Type::INSIDE)
                 {
                     continue;
                 }
@@ -644,7 +646,7 @@ namespace sgl
 
             Ray lightRay(intersectionPoint, lightDir);
             auto [anyHit, hitPoint, _] =  traceRay(lightRay, nullptr);
-            bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint));
+            bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint + lightDir * 0.001));
 
 
             result += (1 -  isObstructed) * (diffuse + specular);
