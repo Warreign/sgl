@@ -15,3 +15,5 @@ sgl-zig/*
 
 *.zip
 results/*
+
+.DS_Store
