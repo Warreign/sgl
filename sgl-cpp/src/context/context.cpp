@@ -248,22 +248,23 @@ namespace sgl
 
         vec3 resultColor;
 
-
         auto [anyHit, hitPoint, hitPrimitive] = traceRay(ray, nullptr);
 
         if (anyHit)
         {
-        vec3 reflectedDir = vec3(0);
-        vec3 reflected = castRay(Ray(hitPoint, reflectedDir), depth+1);
+            vec3 reflectedDir = vec3(0);
+            // vec3 reflected = castRay(Ray(hitPoint, reflectedDir), depth+1);
+            vec3 reflected = vec3();
 
-        vec3 refractedDir = vec3();
-        vec3 refracted = castRay(Ray(hitPoint, refractedDir), depth +1);
+            vec3 refractedDir = vec3();
+            // vec3 refracted = castRay(Ray(hitPoint, refractedDir), depth +1);
+            vec3 refracted = vec3();
         
-            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), ray.origin, hitPrimitive);
+            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), vec3(ray.origin) - hitPoint);
 
-        return resultColor +  hitPrimitive->getMaterial().ks * reflected + hitPrimitive->getMaterial().T * refracted;
+            return resultColor;
         }
-        return m_clearColor;
+        return vec3();
     }
 
     Context::TraceRayResult Context::traceRay(const Ray& ray, std::shared_ptr<Primitive> fromPrimitive, float eps) const 
@@ -553,8 +554,8 @@ namespace sgl
         std::shared_ptr<Light> directional = std::make_shared<DirectionalLight>(vec3(-1, -2, 3), vec3(1));
         // addLight(directional);
 
-        PointLight* pl = dynamic_cast<PointLight*>(m_sceneLights[0].get());
-        pl->m_pos.y -= 300;
+        // PointLight* pl = dynamic_cast<PointLight*>(m_sceneLights[0].get());
+        // pl->m_pos.y -= 300;
 
         // setMatrixMode(SGL_MODELVIEW);
         // getCurrentMat() *= translate(0,0,250);
@@ -593,39 +594,34 @@ namespace sgl
         m_sceneLights.push_back(light);
     }
 
-    vec3 Context::calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir)
+    vec3 Context::calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera) const
     {
-        
         vec3 result(0.0f, 0.0f, 0.0f);    
-        vec3 diffuse(0.0f, 0.0f, 0.0f);  
-        vec3 specular(0.0f, 0.0f, 0.0f); 
 
         //scene light iteration
-        for (const auto &lightBase : m_sceneLights)
+        for (std::shared_ptr<Light> light : m_sceneLights)
         {
+            vec3 diffuse(0.0f, 0.0f, 0.0f);  
+            vec3 specular(0.0f, 0.0f, 0.0f); 
             //casting
-            const PointLight &light = static_cast<const PointLight&>(lightBase);
 
-            vec3 lightDir = normalize(light.getPosition() - intersectionPoint);
+            vec3 lightDir = math::normalize(light->getDirection(intersectionPoint));
 
-            vec3 reflectedDir = normalize(surfaceNormal * (2.0f * dot(surfaceNormal, lightDir)) - lightDir);
+            vec3 reflectedDir = math::normalize(surfaceNormal * (2.0f * math::dotProduct(surfaceNormal, lightDir)) - lightDir);
 
-            float diff = std::fmax(0.0f, dot(surfaceNormal, lightDir));
+            float diff = std::fmax(0.0f, math::dotProduct(surfaceNormal, lightDir));
 
-            diffuse = diffuse + (light.getColor() * material.color * material.kd * diff);
+            diffuse = (light->getColor() * material.color * material.kd * diff);
 
-            float spec = std::pow(std::fmax(0.0f, dot(cameraDir, reflectedDir)), material.shine);
+            float spec = std::pow(std::fmax(0.0f, math::dotProduct(camera, reflectedDir)), material.shine);
 
-            specular = specular + (light.getColor() * material.ks * spec);
-        }
+            specular = (light->getColor() * material.ks * spec);
 
-            vec3 specular = vec3(1) * material.ks * std::pow( std::max( math::dotProduct(r, v), .0f ), material.shine );
+            // Ray lightRay(intersectionPoint, lightDir);
+            // auto [anyHit, hitPoint, _] =  traceRay(lightRay, nullptr);
+            // bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint));
 
-            Ray lightRay(intersectionPoint, l);
-            auto [anyHit, hitPoint, _] =  traceRay(lightRay, primitive);
-            bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint));
-
-            resultColor += (1 - isObstructed) * (diffuse + specular);
+            result += (1) * (diffuse + specular);
         }
 
         return result;

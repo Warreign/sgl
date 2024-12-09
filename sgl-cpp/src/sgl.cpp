@@ -514,7 +514,6 @@ void sglPointLight(const float x, const float y, const float z, const float r, c
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
-    // context->addLight(sgl::PointLight( sgl::vec3(x,y,z), sgl::vec3(r,g,b) ));
     context->addLight(std::make_shared<sgl::PointLight>( sgl::vec3(x,y,z), sgl::vec3(r,g,b) ));
 }
 
