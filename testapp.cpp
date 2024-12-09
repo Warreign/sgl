@@ -100,6 +100,8 @@
 #include "sgl.h"
 #include "timer.h"
 
+#include <filesystem>;
+
 using namespace std;
 
 #define PRINTVAR(a) cerr << #a "\t" << a << endl;
@@ -1089,6 +1091,7 @@ void myKeyboard(unsigned char key, int x, int y) {
 #endif
 
 int main(int argc, char **argv) {
+    std::filesystem::current_path("C:/Users/mathe/Desktop/Škola/Magistr/1. Semestr/APG/git/apg-hw/sgl");
   runMultiplier = (argc > 1 ? atoi(argv[1]) : 1);
   resolutionDivisor = (argc > 2 ? atoi(argv[2]) : 1);
   Width /= resolutionDivisor;

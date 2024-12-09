@@ -29,7 +29,14 @@ vec3 PointLight::getDirection(const vec3& from) const
 
 bool PointLight::isObstructed(const vec3& point, const vec3& hit) const 
 {
-    return math::distance(point, hit) < math::distance(point, m_pos);
+    vec3 lightDir = m_pos - point;
+    float lightDistance = sgl::math::length(lightDir);
+
+    vec3 hitDir = hit - point;
+    float hitDistance = sgl::math::length(hitDir);
+
+    return (hitDistance < lightDistance) &&
+        (math::dotProduct(lightDir, hitDir) > 0);
 }
 
 DirectionalLight::DirectionalLight(const vec3& dir, const vec3& color)
