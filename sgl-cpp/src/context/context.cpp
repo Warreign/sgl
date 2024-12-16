@@ -294,7 +294,7 @@ namespace sgl
         float closestDistance = std::numeric_limits<float>::max();
         if (anyHit)
         {
-            closestDistance = math::length(ray.dir);
+            closestDistance = math::length(ray.dir) - 0.08;
         }
         ray.dir = math::normalize(ray.dir);
     
@@ -308,7 +308,7 @@ namespace sgl
                     continue;
                 }
                 float distance = math::distance(ray.origin, point);
-                if (distance <= closestDistance)
+                if (distance < closestDistance)
                 {
                     closestDistance = distance;
                     closestIntersection = point;
@@ -623,8 +623,8 @@ namespace sgl
 
             vec3 lightDir = light->getDirection(intersectionPoint);
 
-            Ray lightRay(intersectionPoint + lightDir * 0.0001, lightDir * 1.02);
-            auto [anyHit, _, _] =  traceRay(lightRay, true);
+            Ray lightRay(intersectionPoint + lightDir * 0.0001, lightDir);
+            auto [anyHit, a, b] =  traceRay(lightRay, true);
             // bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint + lightDir * 0.002));
             bool isObstructed = anyHit;
 
