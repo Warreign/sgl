@@ -253,10 +253,12 @@ namespace sgl
         if (anyHit)
         {
             vec3 normal = hitPrimitive->getNormal(hitPoint);
+            float ior = hitPrimitive->getMaterial().ior;
             
             if (ray.type == Ray::Type::INSIDE)
             {
                 normal = -normal;
+                ior = 1 / ior;
             }
 
             vec3 reflected = vec3(0);
@@ -268,7 +270,7 @@ namespace sgl
             vec3 refracted = vec3(0);
             if (hitPrimitive->getMaterial().T != 0) {
                 Ray::Type rayType = ray.type == Ray::Type::INSIDE ? Ray::Type::NORMAL : Ray::Type::INSIDE;
-                vec3 refractedDir = math::refract( ray.dir, -normal, hitPrimitive->getMaterial().ior);
+                vec3 refractedDir = math::refract( ray.dir, normal, ior);
                 refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.001, refractedDir, rayType), depth + 1);
             }
         

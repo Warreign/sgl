@@ -59,9 +59,15 @@ std::tuple<bool, vec3> Triangle::intersect(const Ray& ray) const
 	/*if (t < ray.mint || t > ray.maxt)
 		return false;*/
 
-	vec3 intersectPoint = ray.origin + ray.dir * t;
-
-	return { true, intersectPoint };
+	if (t > 0)
+	{
+		vec3 intersectPoint = ray.origin + ray.dir * t;
+		return { true, intersectPoint};
+	}
+	else
+	{
+		return {false, vec3()};
+	}
 }
 
 vec3 Triangle::getNormal(const vec3& point) const
@@ -99,6 +105,9 @@ std::tuple<bool, vec3> Sphere::intersect(const Ray& ray) const
 		t = -b - sqrtf(d);
 		if (t < 0.0f)
 			t = -b + sqrtf(d);
+
+		if (t < 0.0f)
+			return {false, vec3() };
 
 		intersectPoint = ray.origin + ray.dir * t;
 
