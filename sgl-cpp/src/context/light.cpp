@@ -24,7 +24,7 @@ const vec3& Light::getColor() const
 
 vec3 PointLight::getDirection(const vec3& from) const 
 {
-    return math::normalize(m_pos - from);    
+    return m_pos - from;    
 }
 
 bool PointLight::isObstructed(const vec3& point, const vec3& hit) const 
@@ -41,7 +41,7 @@ bool PointLight::isObstructed(const vec3& point, const vec3& hit) const
 
 DirectionalLight::DirectionalLight(const vec3& dir, const vec3& color)
     : Light(color),
-      m_dir(math::normalize(dir))
+      m_dir(dir)
 {
     
 }
