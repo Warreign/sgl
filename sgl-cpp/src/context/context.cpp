@@ -273,7 +273,7 @@ namespace sgl
                 if (refractedDir != vec3())
                 {
                     Ray::Type rayType = ray.type == Ray::Type::INSIDE ? Ray::Type::NORMAL : Ray::Type::INSIDE;
-                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.004, refractedDir, rayType), depth + 1);
+                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.0018, refractedDir, rayType), depth + 1);
                 }
             }
         
@@ -294,7 +294,7 @@ namespace sgl
         float closestDistance = std::numeric_limits<float>::max();
         if (anyHit)
         {
-            closestDistance = math::length(ray.dir) - 0.08;
+            closestDistance = math::length(ray.dir) - 0.95;
         }
         ray.dir = math::normalize(ray.dir);
     
@@ -625,10 +625,8 @@ namespace sgl
 
             Ray lightRay(intersectionPoint + lightDir * 0.0001, lightDir);
             auto [anyHit, a, b] =  traceRay(lightRay, true);
-            // bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint + lightDir * 0.002));
-            bool isObstructed = anyHit;
 
-            if (isObstructed)
+            if (anyHit)
             {
                 continue;
             }
