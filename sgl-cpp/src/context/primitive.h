@@ -27,7 +27,7 @@ public:
     virtual ~Primitive() = default;
 
     // Intersect ray with the primitive, return point of intersection
-    virtual std::tuple<bool, vec3> intersect(const Ray& ray) const = 0;
+    virtual std::tuple<bool, vec3, float> intersect(const Ray& ray) const = 0;
     virtual vec3 getNormal(const vec3& point) const = 0;
     virtual void applyTransform(const mat4& matrix) = 0;
 
@@ -66,7 +66,7 @@ public:
 
     Triangle(const Material& material, const vec3& v1, const vec3& v2, const vec3& v3);
 
-    virtual std::tuple<bool, vec3> intersect(const Ray& ray) const override;
+    virtual std::tuple<bool, vec3, float> intersect(const Ray& ray) const override;
     virtual vec3 getNormal(const vec3& point) const override;
     virtual void applyTransform(const mat4& matrix) override;
 
@@ -84,7 +84,7 @@ public:
 
     Sphere(const Material& material, const vec3& center, float radius);
 
-    virtual std::tuple<bool, vec3> intersect(const Ray& ray) const override;
+    virtual std::tuple<bool, vec3, float> intersect(const Ray& ray) const override;
     virtual vec3 getNormal(const vec3& point) const override;
     virtual void applyTransform(const mat4& matrix) override;
 

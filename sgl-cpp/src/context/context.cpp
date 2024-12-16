@@ -253,10 +253,12 @@ namespace sgl
         if (anyHit)
         {
             vec3 normal = hitPrimitive->getNormal(hitPoint);
+            float ior = hitPrimitive->getMaterial().ior;
             
             if (ray.type == Ray::Type::INSIDE)
             {
                 normal = -normal;
+                ior = 1 / ior;
             }
 
             vec3 reflected = vec3(0);
@@ -267,40 +269,55 @@ namespace sgl
 
             vec3 refracted = vec3(0);
             if (hitPrimitive->getMaterial().T != 0) {
-                Ray::Type rayType = ray.type == Ray::Type::INSIDE ? Ray::Type::NORMAL : Ray::Type::INSIDE;
-                vec3 refractedDir = math::refract( ray.dir, -normal, hitPrimitive->getMaterial().ior);
-                refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.001, refractedDir, rayType), depth + 1);
+                vec3 refractedDir = math::refract( ray.dir, normal, ior);
+                if (refractedDir != vec3())
+                {
+                    Ray::Type rayType = ray.type == Ray::Type::INSIDE ? Ray::Type::NORMAL : Ray::Type::INSIDE;
+                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.0018, refractedDir, rayType), depth + 1);
+                }
             }
         
-            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, normal, math::normalize(vec3(ray.origin) - hitPoint));
+            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint));
 
             return resultColor + reflected + refracted;
         }
         return m_clearColor;
     }
 
-    Context::TraceRayResult Context::traceRay(const Ray& ray, float eps) const 
+    Context::TraceRayResult Context::traceRay(const Ray& cray, bool anyHit, float eps) const 
     {
+        Ray ray = cray;
+
         std::shared_ptr<Primitive> closestPrimitive = nullptr;
         vec3 closestIntersection;
+
         float closestDistance = std::numeric_limits<float>::max();
+        if (anyHit)
+        {
+            closestDistance = math::length(ray.dir) - 0.95;
+        }
+        ray.dir = math::normalize(ray.dir);
     
         for (const auto& primitive : m_scenePrimitives)
         {
-            auto [isIntersected, point] = primitive->intersect(ray);
-
+            auto [isIntersected, point, t] = primitive->intersect(ray);
             if (isIntersected)
             {
-                if ( ray.type != Ray::Type::INSIDE && math::dotProduct(ray.dir, primitive->getNormal(point)) > 0    )
+                if (ray.type != Ray::Type::INSIDE && math::dotProduct(ray.dir, primitive->getNormal(point)) > 0)
                 {
                     continue;
                 }
                 float distance = math::distance(ray.origin, point);
-                if (distance <= closestDistance)
+                if (distance < closestDistance)
                 {
                     closestDistance = distance;
                     closestIntersection = point;
                     closestPrimitive = primitive;
+
+                    if (anyHit)
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -604,17 +621,17 @@ namespace sgl
             vec3 specular(0.0f, 0.0f, 0.0f); 
             //casting
 
-            vec3 lightDir = math::normalize(light->getDirection(intersectionPoint));
+            vec3 lightDir = light->getDirection(intersectionPoint);
 
-            Ray lightRay(intersectionPoint, lightDir);
-            auto [anyHit, hitPoint, _] =  traceRay(lightRay);
-            bool isObstructed = (anyHit && light->isObstructed(intersectionPoint, hitPoint + lightDir * 0.002));
+            Ray lightRay(intersectionPoint + lightDir * 0.0001, lightDir);
+            auto [anyHit, a, b] =  traceRay(lightRay, true);
 
-            if (isObstructed)
+            if (anyHit)
             {
                 continue;
             }
 
+            lightDir = math::normalize(lightDir);
             vec3 reflectedDir = math::normalize(surfaceNormal * (2.0f * math::dotProduct(surfaceNormal, lightDir)) - lightDir);
 
             float diff = std::fmax(0.0f, math::dotProduct(surfaceNormal, lightDir));

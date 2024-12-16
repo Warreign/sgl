@@ -33,7 +33,7 @@ Triangle::Triangle(const Material& material, const vec3& v1, const vec3& v2, con
 {
 }
 
-std::tuple<bool, vec3> Triangle::intersect(const Ray& ray) const
+std::tuple<bool, vec3, float> Triangle::intersect(const Ray& ray) const
 {
 	const vec3 p1 = m_vertices[0];
 	const vec3 p2 = m_vertices[1];
@@ -43,25 +43,31 @@ std::tuple<bool, vec3> Triangle::intersect(const Ray& ray) const
 	vec3 s1 = sgl::math::crossProduct(ray.dir, e2);
 	float divisor = sgl::math::dotProduct(s1, e1);
 	if (divisor == 0.)
-		return { false, {} };
+		return { false, {} , 0};
 	float invDivisor = 1.f / divisor;
 	vec3 d = ray.origin - p1;
 	float b1 = sgl::math::dotProduct(d, s1) * invDivisor;
 	if (b1 < 0. || b1 > 1.)
-		return { false, {} };
+		return { false, {} , 0};
 	
 	vec3 s2 = sgl::math::crossProduct(d, e1);
 	float b2 = sgl::math::dotProduct(ray.dir, s2) * invDivisor;
 	if (b2 < 0. || b1 + b2 > 1.)
-		return { false, {} };
+		return { false, {} , 0};
 
 	float t = sgl::math::dotProduct(e2, s2) * invDivisor;
 	/*if (t < ray.mint || t > ray.maxt)
 		return false;*/
 
-	vec3 intersectPoint = ray.origin + ray.dir * t;
-
-	return { true, intersectPoint };
+	if (t > 0)
+	{
+		vec3 intersectPoint = ray.origin + ray.dir * t;
+		return { true, intersectPoint, t};
+	}
+	else
+	{
+		return {false, vec3(), 0};
+	}
 }
 
 vec3 Triangle::getNormal(const vec3& point) const
@@ -86,7 +92,7 @@ Sphere::Sphere(const Material& material, const vec3& center, float radius)
 {
 }
 
-std::tuple<bool, vec3> Sphere::intersect(const Ray& ray) const
+std::tuple<bool, vec3, float> Sphere::intersect(const Ray& ray) const
 {
 	float t = 0;
 	vec3 intersectPoint(0, 0, 0);
@@ -100,11 +106,14 @@ std::tuple<bool, vec3> Sphere::intersect(const Ray& ray) const
 		if (t < 0.0f)
 			t = -b + sqrtf(d);
 
+		if (t < 0.0f)
+			return {false, vec3(), 0};
+
 		intersectPoint = ray.origin + ray.dir * t;
 
-		return {true, intersectPoint };
+		return {true, intersectPoint, t};
 	}
-	return { false, {} };
+	return { false, {} , false};
 }
 
 vec3 Sphere::getNormal(const vec3& point) const
