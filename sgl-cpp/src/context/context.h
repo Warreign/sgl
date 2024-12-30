@@ -1,6 +1,7 @@
 #pragma once
 #include "light.h"
 #include "material.h"
+#include "environment_map.h"
 #include "math/vector.h"
 #include "math/matrix.h"
 #include "primitive.h"
@@ -67,6 +68,7 @@ public:
     bool isSpecifyingScene() const;
     void renderScene();
     void setCurrentMaterial(const Material& material);
+    void setCurrentEnvironMap(const EnvironmentMap& envMap);
     void addLight(std::shared_ptr<Light> light);
     void addSphere(const vec3& center, float radius);
 //
@@ -161,6 +163,8 @@ private:
     std::vector<std::shared_ptr<Primitive>> m_scenePrimitives;
     std::vector<std::shared_ptr<Light>> m_sceneLights;
     Material m_currentMaterial;
+    EnvironmentMap m_currentEnvMap;
+    bool m_hasEnvironmentMap = false;
 
 };
 

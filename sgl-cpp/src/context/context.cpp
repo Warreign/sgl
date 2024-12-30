@@ -281,6 +281,26 @@ namespace sgl
 
             return resultColor + reflected + refracted;
         }
+
+        if (m_hasEnvironmentMap)
+        {
+            vec3 dir = ray.dir;
+            float d = sqrt(dir.x * dir.x + dir.y * dir.y);
+            float r = d > 0.0f ? acos(dir.z) / (2 * M_PI * d) : 0.0f;
+            float u = 0.5f + dir.x * r;
+            float v = 1.0f - (0.5f + dir.y * r);
+
+            int texX = static_cast<int>(u * m_currentEnvMap.width) % m_currentEnvMap.width;
+            int texY = static_cast<int>(v * m_currentEnvMap.height) % m_currentEnvMap.height;
+
+            int texelIndex = 3 * (texY * m_currentEnvMap.width + texX);
+            float rColor = m_currentEnvMap.texels[texelIndex];
+            float gColor = m_currentEnvMap.texels[texelIndex + 1];
+            float bColor = m_currentEnvMap.texels[texelIndex + 2];
+
+            return vec3(rColor, gColor, bColor);
+        }
+
         return m_clearColor;
     }
 
@@ -603,6 +623,12 @@ namespace sgl
     void Context::setCurrentMaterial(const Material& material)
     {
         m_currentMaterial = material;
+    }
+
+    void Context::setCurrentEnvironMap(const EnvironmentMap& envMap)
+    {
+        m_currentEnvMap = envMap;
+        m_hasEnvironmentMap = true;
     }
 
     void Context::addLight(std::shared_ptr<Light> light)

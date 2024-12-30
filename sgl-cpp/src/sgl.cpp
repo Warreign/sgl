@@ -539,4 +539,12 @@ void sglEmissiveMaterial(const float r, const float g, const float b, const floa
 
 void sglEnvironmentMap(const int width, const int height, float *texels)
 {
+    sgl::SglController& m = sgl::SglController::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    context->setCurrentEnvironMap(sgl::EnvironmentMap(width, height, texels));
 }
