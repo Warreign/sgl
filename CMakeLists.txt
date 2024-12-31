@@ -107,8 +107,8 @@ target_compile_definitions(${NAME}
     # TEST1
     # TEST2
     # TEST3
-    TEST4
-    # TEST5
+    # TEST4
+    TEST5
     )
 
 # Properties.

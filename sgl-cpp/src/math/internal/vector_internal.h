@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <ostream>
 #include <string>
+#include <utility>
 
 namespace sgl
 {
@@ -96,6 +97,9 @@ namespace sgl
 
         template <size_t M, typename U, typename = std::enable_if_t<M < N>>
         constexpr Vector(const Vector<M, U>& v);
+
+        template <size_t M, typename U, typename = std::enable_if_t<M < N>, size_t... Is>
+        constexpr Vector(const Vector<M, U>& v, std::index_sequence<Is...> sq);
         
         // List constructors
         template <typename U>

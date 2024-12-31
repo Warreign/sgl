@@ -1,5 +1,6 @@
 #include "context.h"
 
+#include "material.h"
 #include "light.h"
 #include "math/transform.h"
 #include "math/utils.h"
@@ -277,7 +278,10 @@ namespace sgl
                 }
             }
         
-            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint));
+            for (auto light : m_sceneLights)
+            {
+                resultColor += calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint), *light);
+            }
 
             return resultColor + reflected + refracted;
         }
@@ -300,6 +304,11 @@ namespace sgl
     
         for (const auto& primitive : m_scenePrimitives)
         {
+            if (primitive->getMaterial().isEmissive() && anyHit)
+            {
+                continue;
+            }
+
             auto [isIntersected, point, t] = primitive->intersect(ray);
             if (isIntersected)
             {
@@ -375,6 +384,11 @@ namespace sgl
                     const vec4& v2 = m_vertexBuffer[1];
                     const vec4& v3 = m_vertexBuffer[2];
                     m_scenePrimitives.emplace_back(std::make_shared<Triangle>(m_currentMaterial, v1, v2, v3));
+                    if (m_currentMaterial->isEmissive())
+                    {
+                        const EmissiveMaterial& emissiveMaterial = static_cast<EmissiveMaterial&>(*m_currentMaterial);
+                        addLight(std::make_shared<AreaLight>(v1, v2, v3, emissiveMaterial.color, emissiveMaterial.c0, emissiveMaterial.c1, emissiveMaterial.c2));
+                    }
                     break;
                 }
                 default:
@@ -600,7 +614,7 @@ namespace sgl
         }
     }
 
-    void Context::setCurrentMaterial(const Material& material)
+    void Context::setCurrentMaterial(std::shared_ptr<Material> material)
     {
         m_currentMaterial = material;
     }
@@ -610,20 +624,27 @@ namespace sgl
         m_sceneLights.push_back(light);
     }
 
-    vec3 Context::calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera) const
+    vec3 Context::calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera, const Light& light) const
     {
+        if (material.isEmissive())
+        {
+            return material.color;
+        }
+
+        const int samples = light.isAreaLight() ? AreaLight::SAMPLE_NUMBER : 1;
+
         vec3 result(0.0f, 0.0f, 0.0f);    
 
-        //scene light iteration
-        for (std::shared_ptr<Light> light : m_sceneLights)
+        for (int i = 0; i < samples; ++i)
         {
+            //scene light iteration
             vec3 diffuse(0.0f, 0.0f, 0.0f);  
             vec3 specular(0.0f, 0.0f, 0.0f); 
             //casting
 
-            vec3 lightDir = light->getDirection(intersectionPoint);
+            vec3 lightDir = light.getDirection(intersectionPoint);
 
-            Ray lightRay(intersectionPoint + lightDir * 0.0001, lightDir);
+            Ray lightRay(intersectionPoint, lightDir);
             auto [anyHit, a, b] =  traceRay(lightRay, true);
 
             if (anyHit)
@@ -631,16 +652,18 @@ namespace sgl
                 continue;
             }
 
+            vec3 lightColor = light.getColor(lightDir);
             lightDir = math::normalize(lightDir);
-            vec3 reflectedDir = math::normalize(surfaceNormal * (2.0f * math::dotProduct(surfaceNormal, lightDir)) - lightDir);
+
+            vec3 reflectedDir = math::normalize(math::reflect(-lightDir, surfaceNormal));
 
             float diff = std::fmax(0.0f, math::dotProduct(surfaceNormal, lightDir));
 
-            diffuse = (light->getColor() * material.color * material.kd * diff);
+            diffuse = (lightColor * material.color * material.kd * diff);
 
             float spec = std::pow(std::fmax(0.0f, math::dotProduct(camera, reflectedDir)), material.shine);
 
-            specular = (light->getColor() * material.ks * spec);
+            specular = (lightColor * material.ks * spec);
 
             result += (diffuse + specular);
         }

@@ -15,11 +15,11 @@ public:
     Light(const vec3& color);
 
     // Return direction towards light
-    virtual bool isObstructed(const vec3& point, const vec3& hit) const = 0;
     virtual vec3 getDirection(const vec3& from) const = 0;
-    const vec3& getColor() const;
+    virtual bool isAreaLight() const;
+    virtual vec3 getColor(const vec3& direction) const;
 
-private:
+protected:
     vec3 m_color;
 };
 
@@ -31,12 +31,8 @@ public:
     PointLight(const vec3& pos, const vec3& color);
 
     virtual vec3 getDirection(const vec3& from) const;
-    virtual bool isObstructed(const vec3& point, const vec3& middle) const;
-
-    // friend Context;
 
     vec3 m_pos;
-private:
 };
 
 class DirectionalLight : public Light
@@ -47,10 +43,37 @@ public:
     DirectionalLight(const vec3& dir, const vec3& color);
 
     virtual vec3 getDirection(const vec3& from) const;
-    virtual bool isObstructed(const vec3& point, const vec3& middle) const;
 
 private:
     vec3 m_dir;
+};
+
+class AreaLight : public Light
+{
+public:
+    static const int SAMPLE_NUMBER = 16;
+
+    AreaLight(AreaLight&&) = default;
+
+    AreaLight(const vec3& v1, const vec3& v2, const vec3& v3, const vec3& color, const float c0, const float c1, const float c2);
+
+    virtual vec3 getDirection(const vec3& from) const;
+    virtual vec3 getColor(const vec3& direction) const;
+    virtual bool isAreaLight() const;
+
+private:
+    vec3 getRandomPoint() const;
+
+    const vec3 m_v1;
+    const vec3 m_e1;
+    const vec3 m_e2;
+
+    const vec3 m_normal;
+    const float m_areaOverSamples;
+
+    const float m_c0;
+    const float m_c1;
+    const float m_c2;
 };
 
 }

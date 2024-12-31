@@ -66,7 +66,7 @@ public:
     void endScene();
     bool isSpecifyingScene() const;
     void renderScene();
-    void setCurrentMaterial(const Material& material);
+    void setCurrentMaterial(std::shared_ptr<Material> material);
     void addLight(std::shared_ptr<Light> light);
     void addSphere(const vec3& center, float radius);
 //
@@ -105,7 +105,7 @@ private:
     vec3 castRay(const Ray& ray, int depth = 0) const;
     Context::TraceRayResult traceRay(const Ray& ray, bool anyHit = false, float eps = 0.1) const;
     // Returns color of a pixel according to phong model
-    vec3 calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera) const;
+    vec3 calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera, const Light& light) const;
 //
 
 // Primitive rendering
@@ -160,7 +160,7 @@ private:
     bool m_isSpecifyingScene;
     std::vector<std::shared_ptr<Primitive>> m_scenePrimitives;
     std::vector<std::shared_ptr<Light>> m_sceneLights;
-    Material m_currentMaterial;
+    std::shared_ptr<Material> m_currentMaterial;
 
 };
 

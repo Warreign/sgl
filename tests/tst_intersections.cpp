@@ -3,12 +3,13 @@
 #include "context/primitive.h"
 #include <iostream>
 #include <cassert>
+#include <memory>
 
 using namespace sgl;
 
 int main()
 {
-    Material mat;
+    std::shared_ptr<Material> mat = std::make_shared<Material>();
     vec3 v1(0, 0, 0);
     vec3 v2(1, 0, 2);
     vec3 v3(0, 1, 0);
