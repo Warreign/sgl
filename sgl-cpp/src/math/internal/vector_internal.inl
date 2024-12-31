@@ -5,6 +5,7 @@
 #include <cstring>
 #include <sstream>
 #include <iomanip>
+#include <utility>
 
 #pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
@@ -369,18 +370,9 @@ namespace sgl
     template <size_t N, typename T>
     template <size_t M, typename U, typename >
     constexpr  Vector<N, T>::Vector(const Vector<M, U>& v)
+        : Vector(v, std::make_index_sequence<N>())
     {
-        for (size_t i = 0; i < M; ++i)
-        {
-            this->m_data[i] = static_cast<T>(v[i]);
-        }
-
-        for (size_t i = M; i < N; ++i)
-        {
-            this->m_data[i] = static_cast<T>(0);
-        }
     }
-
 
     template <size_t N, typename T>
     template <typename... U, typename >

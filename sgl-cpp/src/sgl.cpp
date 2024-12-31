@@ -502,7 +502,7 @@ void sglMaterial(const float r, const float g, const float b, const float kd, co
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
-    context->setCurrentMaterial(sgl::Material(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
+    context->setCurrentMaterial(std::make_shared<sgl::Material>(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
 }
 
 void sglPointLight(const float x, const float y, const float z, const float r, const float g, const float b)
@@ -535,6 +535,15 @@ void sglRasterizeScene()
 
 void sglEmissiveMaterial(const float r, const float g, const float b, const float c0, const float c1, const float c2)
 {
+    sgl::SglController& m = sgl::SglController::getInstance();
+    sgl::Context* context = m.getActive();
+    if (!context || context->isDrawing())
+    {
+        m.setError(SGL_INVALID_OPERATION);
+        return;
+    }
+    // context->setCurrentMaterial(sgl::Material(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
+    context->setCurrentMaterial(std::make_shared<sgl::EmissiveMaterial>(sgl::vec3(r, g, b), c0, c1, c2));
 }
 
 void sglEnvironmentMap(const int width, const int height, float *texels)
