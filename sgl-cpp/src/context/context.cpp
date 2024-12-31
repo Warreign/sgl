@@ -387,8 +387,7 @@ namespace sgl
                     if (m_currentMaterial->isEmissive())
                     {
                         const EmissiveMaterial& emissiveMaterial = static_cast<EmissiveMaterial&>(*m_currentMaterial);
-                        addLight(std::make_shared<AreaLight>(v1, v2, v3, emissiveMaterial.color, vec3(emissiveMaterial.c0, emissiveMaterial.c1, emissiveMaterial.c2)));
-                        // addLight(std::make_shared<PointLight>(v1, emissiveMaterial.color / 10));
+                        addLight(std::make_shared<AreaLight>(v1, v2, v3, emissiveMaterial.color, emissiveMaterial.c0, emissiveMaterial.c1, emissiveMaterial.c2));
                     }
                     break;
                 }
@@ -632,8 +631,7 @@ namespace sgl
             return material.color;
         }
 
-        // const int samples = light.isAreaLight() ? AreaLight::SAMPLE_NUMBER : 1;
-        const int samples = 1;
+        const int samples = light.isAreaLight() ? AreaLight::SAMPLE_NUMBER : 1;
 
         vec3 result(0.0f, 0.0f, 0.0f);    
 
@@ -651,8 +649,7 @@ namespace sgl
 
             if (anyHit)
             {
-                // return {0, 0, 0};
-                break;
+                continue;
             }
 
             vec3 lightColor = light.getColor(lightDir);

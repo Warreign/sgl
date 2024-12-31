@@ -2,7 +2,6 @@
 #include "math/utils.h"
 #include <cmath>
 #include <cstdlib>
-#include <random>
 
 namespace sgl
 {
@@ -35,18 +34,6 @@ vec3 PointLight::getDirection(const vec3& from) const
     return m_pos - from;    
 }
 
-bool PointLight::isObstructed(const vec3& point, const vec3& hit) const 
-{
-    vec3 lightDir = m_pos - point;
-    float lightDistance = sgl::math::length(lightDir);
-
-    vec3 hitDir = hit - point;
-    float hitDistance = sgl::math::length(hitDir);
-
-    return (hitDistance < lightDistance) &&
-        (math::dotProduct(lightDir, hitDir) > 0);
-}
-
 DirectionalLight::DirectionalLight(const vec3& dir, const vec3& color)
     : Light(color),
       m_dir(dir)
@@ -59,19 +46,16 @@ vec3 DirectionalLight::getDirection(const vec3& from) const
     return -m_dir;
 }
 
-bool DirectionalLight::isObstructed(const vec3& point, const vec3& hit) const 
-{
-    return true;    
-}
-
-AreaLight::AreaLight(const vec3& v1, const vec3& v2, const vec3& v3, const vec3& color, const vec3& attenuation)
+AreaLight::AreaLight(const vec3& v1, const vec3& v2, const vec3& v3, const vec3& color, const float c0, const float c1, const float c2)
     : Light(color),
       m_v1(v1),
       m_e1(v2-v1),
       m_e2(v3-v1),
       m_normal(math::normalize(math::crossProduct(m_e1, m_e2))),
-      m_area(0.5 * math::length(math::crossProduct(m_e1, m_e2))),
-      m_attenuation(attenuation)
+      m_areaOverSamples( (0.5 * math::length(math::crossProduct(m_e1, m_e2))) / SAMPLE_NUMBER),
+      m_c0(c0),
+      m_c1(c1),
+      m_c2(c2)
 {
 }
 
@@ -80,18 +64,11 @@ vec3 AreaLight::getDirection(const vec3& from) const
     return getRandomPoint() - from;
 }
 
-bool AreaLight::isObstructed(const vec3& point, const vec3& middle) const 
-{
-    return false;
-}
-
 vec3 AreaLight::getColor(const vec3& direction) const 
 {
-    // float A = 0.5 * math::length(math::crossProduct(m_e1, m_e2));
     float d = math::length(direction);
-    // return ( (A * math::dotProduct(m_normal, -math::normalize(direction))) / (SAMPLE_NUMBER * (m_attenuation.x + d * m_attenuation.y + d * d * m_attenuation.z)) ) * Light::getColor(direction);
-    float cosfi = math::dotProduct(m_normal, -direction);
-    return m_color * cosfi * (m_area / SAMPLE_NUMBER) / (m_attenuation.x + m_attenuation.y * d + m_attenuation.z * d * d);
+    float cosfi = math::dotProduct(m_normal, -math::normalize(direction));
+    return m_color * (cosfi * m_areaOverSamples / (m_c0 + m_c1 * d + m_c2 * d * d));
 }
 
 bool AreaLight::isAreaLight() const 
@@ -108,7 +85,5 @@ vec3 AreaLight::getRandomPoint() const
     float v = (1 - r2) * sqrtr1;
     return m_v1 + u * m_e1 + v * m_e2;
 }
-
-// const std::uniform_real_distribution<> AreaLight::m_distribution 
 
 } // namespace sgl

@@ -99,17 +99,7 @@ namespace sgl
         constexpr Vector(const Vector<M, U>& v);
 
         template <size_t M, typename U, typename = std::enable_if_t<M < N>, size_t... Is>
-        constexpr Vector(const Vector<M, U>& v, std::index_sequence<Is...> sq)
-        {
-            ([&]()
-            {
-                size_t idx = Is;
-                if (idx < M)
-                    this->m_data[idx] = v[idx];
-                else
-                    this->m_data[idx] = 0;
-            }(), ...);
-        }
+        constexpr Vector(const Vector<M, U>& v, std::index_sequence<Is...> sq);
         
         // List constructors
         template <typename U>

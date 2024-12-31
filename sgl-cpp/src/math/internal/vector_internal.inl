@@ -382,4 +382,18 @@ namespace sgl
         ([&]{ this->m_data[i++] = static_cast<T>(values); } (), ...);
     }
 
+    template <size_t N, typename T>
+    template <size_t M, typename U, typename , size_t... Is>
+    constexpr Vector<N, T>::Vector(const Vector<M, U>& v, std::index_sequence<Is...> sq)
+    {
+        ([&]()
+        {
+            size_t idx = Is;
+            if (idx < M)
+                this->m_data[idx] = v[idx];
+            else
+                this->m_data[idx] = 0;
+        }(), ...);
+    }
+
 }
