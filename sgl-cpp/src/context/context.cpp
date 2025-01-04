@@ -632,7 +632,46 @@ namespace sgl
                 putPixel(vec3(xp, yp, 0), color);
             }
         }
+        applyAdaptiveAntialiasing();
     }
+
+    void Context::applyAdaptiveAntialiasing()
+    {
+        std::vector<vec3> smoothedColorBuffer = m_colorBuffer;
+
+        for (int y = 1; y < m_height - 1; ++y)
+        {
+            for (int x = 1; x < m_width - 1; ++x)
+            {
+                int idx = point2idx(x, y);
+                vec3 currentColor = m_colorBuffer[idx];
+
+                // neighbors
+                vec3 left = m_colorBuffer[point2idx(x - 1, y)];
+                vec3 right = m_colorBuffer[point2idx(x + 1, y)];
+                vec3 up = m_colorBuffer[point2idx(x, y - 1)];
+                vec3 down = m_colorBuffer[point2idx(x, y + 1)];
+
+                // detect high contrast
+                float edgeThreshold = 0.2f; 
+                bool isEdge = (math::distance(currentColor, left) > edgeThreshold ||
+                            math::distance(currentColor, right) > edgeThreshold ||
+                            math::distance(currentColor, up) > edgeThreshold ||
+                            math::distance(currentColor, down) > edgeThreshold);
+
+                // if border
+                if (isEdge)
+                {
+                    vec3 averageColor = (left + right + up + down + currentColor) / 5.0f;
+                    smoothedColorBuffer[idx] = averageColor;
+                }
+            }
+        }
+
+        
+        m_colorBuffer = smoothedColorBuffer;
+    }
+
 
     void Context::setCurrentMaterial(std::shared_ptr<Material> material)
     {
