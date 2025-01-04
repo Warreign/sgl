@@ -152,6 +152,9 @@ private:
     std::vector<std::shared_ptr<Light>> m_sceneLights;
     Material m_currentMaterial;
 
+    // Adaptive antialising
+     void Context::applyAdaptiveAntialiasing();
+
 };
 
 } // namespace sgl
