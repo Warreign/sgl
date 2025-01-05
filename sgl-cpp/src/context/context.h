@@ -70,6 +70,7 @@ public:
     void addLight(std::shared_ptr<Light> light);
     // Returns color of a pixel according to phong model
     vec3 calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir);
+    vec3 calculateCookTorrance(const Material& material, const vec3& intersectionPoint, const vec3& cameraLocationPoint, const vec3& surfaceNormal) const;
     void addSphere(const vec3& center, float radius);
 //
     

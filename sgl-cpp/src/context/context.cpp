@@ -3,6 +3,7 @@
 #include "light.h"
 #include "math/transform.h"
 #include "math/utils.h"
+#include "math/vector.h"
 #include "primitive.h"
 #include "ray.h"
 #include "sgl.h"
@@ -514,7 +515,8 @@ namespace sgl
                 }
                 
                 vec3 phongColor = closestPrimitive ?
-                    calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection), math::normalize(vec3(originWorld) - closestIntersection)) :
+                    // calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection), math::normalize(vec3(originWorld) - closestIntersection)) :
+                    calculateCookTorrance(closestPrimitive->getMaterial(), closestIntersection, vec3(originWorld), closestPrimitive->getNormal(closestIntersection)) :
                     // (closestPrimitive->getMaterial().color) :
                     m_clearColor;
 
@@ -535,37 +537,90 @@ namespace sgl
 
     vec3 Context::calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir)
     {
-        
         vec3 result(0.0f, 0.0f, 0.0f);    
-        vec3 diffuse(0.0f, 0.0f, 0.0f);  
-        vec3 specular(0.0f, 0.0f, 0.0f); 
 
         //scene light iteration
-        for (const auto &lightBase : m_sceneLights)
+        for (std::shared_ptr<Light> light : m_sceneLights)
         {
+            vec3 diffuse(0.0f, 0.0f, 0.0f);  
+            vec3 specular(0.0f, 0.0f, 0.0f); 
             //casting
-            const PointLight &light = static_cast<const PointLight&>(lightBase);
 
-            vec3 lightDir = normalize(light.getPosition() - intersectionPoint);
+            vec3 lightDir = math::normalize(light->getDirection(intersectionPoint));
 
-            vec3 reflectedDir = normalize(surfaceNormal * (2.0f * dot(surfaceNormal, lightDir)) - lightDir);
+            vec3 reflectedDir = math::normalize(surfaceNormal * (2.0f * math::dotProduct(surfaceNormal, lightDir)) - lightDir);
 
-            float diff = std::fmax(0.0f, dot(surfaceNormal, lightDir));
+            float diff = std::fmax(0.0f, math::dotProduct(surfaceNormal, lightDir));
 
-            diffuse = diffuse + (light.getColor() * material.color * material.kd * diff);
+            diffuse = (light->getColor() * material.color * material.kd * diff);
 
-            float spec = std::pow(std::fmax(0.0f, dot(cameraDir, reflectedDir)), material.shine);
+            float spec = std::pow(std::fmax(0.0f, math::dotProduct(cameraDir, reflectedDir)), material.shine);
 
-            specular = specular + (light.getColor() * material.ks * spec);
+            specular = (light->getColor() * material.ks * spec);
+
+            //sum
+            result += diffuse + specular;
         }
-
-        //sum
-        result = diffuse + specular;
 
         //[0, 1]
         result.x = std::fmax(0.0f, std::fmin(1.0f, result.x));
         result.y = std::fmax(0.0f, std::fmin(1.0f, result.y));
         result.z = std::fmax(0.0f, std::fmin(1.0f, result.z));
+
+        return result;
+    }
+
+    vec3 Context::calculateCookTorrance(const Material& material, const vec3& intersectionPoint, const vec3& cameraLocationPoint, const vec3& surfaceNormal) const
+    {
+        vec3 result(0);
+
+        for (std::shared_ptr<Light> light : m_sceneLights)
+        {
+            // Vectors
+            vec3 V = math::normalize(cameraLocationPoint - intersectionPoint);
+            vec3 L = light->getDirection(intersectionPoint);
+            vec3 H = math::normalize(V + L);
+
+            // Fresnel Term
+            float F0 = pow((material.ior - 1) / (material.ior + 1), 2);
+            float F = F0 + (1 - F0) * pow(1 - math::dotProduct(V, H), 5);
+
+            // Microfacet Distribution Function
+            float cosAlpha = std::max(math::dotProduct(surfaceNormal, H), 1e-5f);
+            float tanAlphaSq = (1 - cosAlpha * cosAlpha) / (cosAlpha * cosAlpha);
+            float m = 1 / sqrt(material.shine);
+            float D = exp(-pow(tanAlphaSq / m, 2)) / (m * m * pow(cosAlpha, 4));
+
+
+            // Geometric Attenuation Factor
+            float dotNV = std::max(math::dotProduct(surfaceNormal, V), 1e-5f);
+            float dotNL = std::max(math::dotProduct(surfaceNormal, L), 1e-5f);
+            float dotVH = std::max(math::dotProduct(V, H), 1e-5f);
+            float dotNH = std::max(math::dotProduct(surfaceNormal, H), 1e-5f);
+            float G = std::min(1.0f, std::min((2 * dotNH * dotNV) / dotVH, (2 * dotNH * dotNL) / dotVH));
+
+
+            // Specular Reflectance
+            float Rs = (F * D * G) / (M_PI * dotNL * dotNV);
+
+            // Diffuse Reflectance
+            vec3 Rd = (material.color / M_PI) * material.kd;
+
+            //std::cout << material.kd << " " << material.ks << " " << material.ior << std::endl;
+            //std::cout << "Fresnel Term: " << F << std::endl;
+            //std::cout << "Microfacet Distribution Function: " << D << std::endl; //0
+            //std::cout << "Geometric Attenuation Factor: " << G << std::endl;
+            //std::cout << "Specular Reflectance: " << Rs << std::endl; //0
+            //std::cout << "Diffuse Reflectance: " << Rd << std::endl;
+
+            // Combine Components
+            vec3 R = Rd + material.ks * Rs;
+
+            // Scale by light color
+            vec3 Ir = light->getColor() * R;
+
+            result += Ir;
+        }
 
         return result;
     }
