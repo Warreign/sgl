@@ -108,6 +108,8 @@ private:
     Context::TraceRayResult traceRay(const Ray& ray, bool anyHit = false, float eps = 0.1) const;
     // Returns color of a pixel according to phong model
     vec3 calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera) const;
+    // Returns color of a pixel according to Cook Torrance model
+    vec3 calculateCookTorrance(const Material& material, const vec3& intersectionPoint, const vec3& cameraLocationPoint, const vec3& surfaceNormal) const;
 //
 
 // Primitive rendering

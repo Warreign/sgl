@@ -246,7 +246,7 @@ namespace sgl
             return m_clearColor;
         }
 
-        vec3 resultColor;
+        vec3 resultColor(0);
 
         auto [anyHit, hitPoint, hitPrimitive] = traceRay(ray);
 
@@ -262,22 +262,24 @@ namespace sgl
             }
 
             vec3 reflected = vec3(0);
-            if (hitPrimitive->getMaterial().ks != 0) {
+            /*if (hitPrimitive->getMaterial().ks != 0) {
                 vec3 reflectedDir = math::reflect(ray.dir, normal);
                 reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir, ray.type), depth+1);
-            }
+            }*/
 
             vec3 refracted = vec3(0);
-            if (hitPrimitive->getMaterial().T != 0) {
+            /*if (hitPrimitive->getMaterial().T != 0) {
                 vec3 refractedDir = math::refract( ray.dir, normal, ior);
                 if (refractedDir != vec3())
                 {
                     Ray::Type rayType = ray.type == Ray::Type::INSIDE ? Ray::Type::NORMAL : Ray::Type::INSIDE;
                     refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.0018, refractedDir, rayType), depth + 1);
                 }
-            }
+            }*/
         
-            resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint));
+            //resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint));
+
+            resultColor = calculateCookTorrance(hitPrimitive->getMaterial(), hitPoint, ray.origin, hitPrimitive->getNormal(hitPoint));
 
             return resultColor + reflected + refracted;
         }
@@ -669,6 +671,62 @@ namespace sgl
             specular = (light->getColor() * material.ks * spec);
 
             result += (diffuse + specular);
+        }
+
+        return result;
+    }
+
+    vec3 Context::calculateCookTorrance(const Material& material, const vec3& intersectionPoint, const vec3& cameraLocationPoint, const vec3& surfaceNormal) const
+    {
+        vec3 result(0);
+
+        for (std::shared_ptr<Light> light : m_sceneLights)
+        {
+            // Vectors
+            vec3 V = math::normalize(cameraLocationPoint - intersectionPoint);
+            vec3 L = light->getDirection(intersectionPoint);
+            vec3 H = math::normalize(V + L);
+
+            // Fresnel Term
+            float F0 = pow((material.ior - 1) / (material.ior + 1), 2);
+            float F = F0 + (1 - F0) * pow(1 - math::dotProduct(V, H), 5);
+
+
+            // Microfacet Distribution Function
+            float cosAlpha = std::max(math::dotProduct(surfaceNormal, H), 1e-5f);
+            float tanAlphaSq = (1 - cosAlpha * cosAlpha) / (cosAlpha * cosAlpha);
+            float m = 1 / sqrt(material.shine);
+            float D = exp(-pow(tanAlphaSq / m, 2)) / (m * m * pow(cosAlpha, 4));
+
+
+            // Geometric Attenuation Factor
+            float dotNV = std::max(math::dotProduct(surfaceNormal, V), 1e-5f);
+            float dotNL = std::max(math::dotProduct(surfaceNormal, L), 1e-5f);
+            float dotVH = std::max(math::dotProduct(V, H), 1e-5f);
+            float dotNH = std::max(math::dotProduct(surfaceNormal, H), 1e-5f);
+            float G = std::min(1.0f, std::min((2 * dotNH * dotNV) / dotVH, (2 * dotNH * dotNL) / dotVH));
+
+
+            // Specular Reflectance
+            float Rs = (F * D * G) / (M_PI * dotNL * dotNV);
+
+            // Diffuse Reflectance
+            vec3 Rd = (material.color / M_PI) * material.kd;
+
+            //std::cout << material.kd << " " << material.ks << " " << material.ior << std::endl;
+            //std::cout << "Fresnel Term: " << F << std::endl;
+            //std::cout << "Microfacet Distribution Function: " << D << std::endl; //0
+            //std::cout << "Geometric Attenuation Factor: " << G << std::endl;
+            //std::cout << "Specular Reflectance: " << Rs << std::endl; //0
+            //std::cout << "Diffuse Reflectance: " << Rd << std::endl;
+
+            // Combine Components
+            vec3 R = Rd + material.ks * Rs;
+
+            // Scale by light color
+            vec3 Ir = light->getColor() * R;
+
+            result += Ir;
         }
 
         return result;
