@@ -532,6 +532,7 @@ namespace sgl
 
     void Context::addLight(std::shared_ptr<Light> light)
     {
+        //std::cout << "adding light: " << light->getColor() << std::endl;
         m_sceneLights.push_back(light);
     }
 
@@ -576,9 +577,20 @@ namespace sgl
 
         for (std::shared_ptr<Light> light : m_sceneLights)
         {
-            // Vectors
-            vec3 V = math::normalize(cameraLocationPoint - intersectionPoint);
             vec3 L = light->getDirection(intersectionPoint);
+
+            Ray lightRay(intersectionPoint + L * 0.0001, L);
+            auto [anyHit, a, b] = traceRay(lightRay, true);
+
+            if (anyHit)
+            {
+                continue;
+            }
+
+
+            // Vectors
+            L = math::normalize(L);
+            vec3 V = math::normalize(cameraLocationPoint - intersectionPoint);
             vec3 H = math::normalize(V + L);
 
             // Fresnel Term
@@ -604,20 +616,13 @@ namespace sgl
             float Rs = (F * D * G) / (M_PI * dotNL * dotNV);
 
             // Diffuse Reflectance
-            vec3 Rd = (material.color / M_PI) * material.kd;
-
-            //std::cout << material.kd << " " << material.ks << " " << material.ior << std::endl;
-            //std::cout << "Fresnel Term: " << F << std::endl;
-            //std::cout << "Microfacet Distribution Function: " << D << std::endl; //0
-            //std::cout << "Geometric Attenuation Factor: " << G << std::endl;
-            //std::cout << "Specular Reflectance: " << Rs << std::endl; //0
-            //std::cout << "Diffuse Reflectance: " << Rd << std::endl;
+            //vec3 Rd = (material.color / M_PI) * material.kd;
+            vec3 Rd = material.kd * (1 - F) * dotNL * material.color;
 
             // Combine Components
             vec3 R = Rd + material.ks * Rs;
 
-            // Scale by light color
-            vec3 Ir = light->getColor() * R;
+            vec3 Ir = light->getColor() * dotNL * R;
 
             result += Ir;
         }
