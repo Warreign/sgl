@@ -503,6 +503,7 @@ void sglMaterial(const float r, const float g, const float b, const float kd, co
         return;
     }
     context->setCurrentMaterial(sgl::Material(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
+    //std::cout << "adding mat, kd = " << kd << ", color: " << r << " " << g << " " << b << ", ks: " << ks << std::endl;
 }
 
 void sglPointLight(const float x, const float y, const float z, const float r, const float g, const float b)
