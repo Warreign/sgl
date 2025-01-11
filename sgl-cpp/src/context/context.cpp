@@ -587,41 +587,42 @@ namespace sgl
                 continue;
             }
 
+            float roughness = std::sqrt(2.0f / (material.shine + 2.0f));
 
             // Vectors
             L = math::normalize(L);
             vec3 V = math::normalize(cameraLocationPoint - intersectionPoint);
             vec3 H = math::normalize(V + L);
 
-            // Fresnel Term
-            float F0 = pow((material.ior - 1) / (material.ior + 1), 2);
-            float F = F0 + (1 - F0) * pow(1 - math::dotProduct(V, H), 5);
-
-            // Microfacet Distribution Function
-            float cosAlpha = std::max(math::dotProduct(surfaceNormal, H), 1e-5f);
-            float tanAlphaSq = (1 - cosAlpha * cosAlpha) / (cosAlpha * cosAlpha);
-            float m = 1 / sqrt(material.shine);
-            float D = exp(-pow(tanAlphaSq / m, 2)) / (m * m * pow(cosAlpha, 4));
-
-
-            // Geometric Attenuation Factor
+            // Dot products
             float dotNV = std::max(math::dotProduct(surfaceNormal, V), 1e-5f);
             float dotNL = std::max(math::dotProduct(surfaceNormal, L), 1e-5f);
             float dotVH = std::max(math::dotProduct(V, H), 1e-5f);
-            float dotNH = std::max(math::dotProduct(surfaceNormal, H), 1e-5f);
-            float G = std::min(1.0f, std::min((2 * dotNH * dotNV) / dotVH, (2 * dotNH * dotNL) / dotVH));
+            float dotNH = math::dotProduct(surfaceNormal, H);
+            float dotHL = math::dotProduct(H, L);
 
+            // Fresnel Term
+            float F0 = pow((material.ior - 1) / (material.ior + 1), 2);
+            float F = F0 + (1 - F0) * pow(1 - dotHL, 5);
+
+            // Microfacet Distribution Function
+            float cosAlpha = dotNH;
+            float tanAlphaSq = (1 - cosAlpha * cosAlpha) / (cosAlpha * cosAlpha);
+            float D = exp(-pow(tanAlphaSq / roughness, 2)) / (M_PI * roughness * roughness * pow(cosAlpha, 4));
+
+            // Geometric Attenuation Factor
+            float G = std::min(1.0f, std::min((2 * dotNH * dotNV) / dotVH, (2 * dotNH * dotNL) / dotVH));
 
             // Specular Reflectance
             float Rs = (F * D * G) / (M_PI * dotNL * dotNV);
 
             // Diffuse Reflectance
-            //vec3 Rd = (material.color / M_PI) * material.kd;
-            vec3 Rd = material.kd * (1 - F) * dotNL * material.color;
+            vec3 Rd = material.kd * (1 - F) * dotNL * material.color; 
 
-            // Combine Components
+            // total Reflectance
             vec3 R = Rd + material.ks * Rs;
 
+            // Combine Components
             vec3 Ir = light->getColor() * dotNL * R;
 
             result += Ir;
