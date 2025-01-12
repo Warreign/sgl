@@ -530,42 +530,74 @@ namespace sgl
     }
 
     void Context::applyAdaptiveAntialiasing()
+{
+    std::vector<int> importantPixels;
+
+    
+    float edgeThreshold = 0.2f; 
+
+    for (int y = 1; y < m_height - 1; ++y)
     {
-        std::vector<vec3> smoothedColorBuffer = m_colorBuffer;
-
-        for (int y = 1; y < m_height - 1; ++y)
+        for (int x = 1; x < m_width - 1; ++x)
         {
-            for (int x = 1; x < m_width - 1; ++x)
+            int idx = point2idx(x, y);
+            vec3 currentColor = m_colorBuffer[idx];
+
+            //neighbors
+            vec3 left = m_colorBuffer[point2idx(x - 1, y)];
+            vec3 right = m_colorBuffer[point2idx(x + 1, y)];
+            vec3 up = m_colorBuffer[point2idx(x, y - 1)];
+            vec3 down = m_colorBuffer[point2idx(x, y + 1)];
+
+            float maxDifference = std::max({
+                math::distance(currentColor, left),
+                math::distance(currentColor, right),
+                math::distance(currentColor, up),
+                math::distance(currentColor, down)
+            });
+
+            if (maxDifference > edgeThreshold)
             {
-                int idx = point2idx(x, y);
-                vec3 currentColor = m_colorBuffer[idx];
-
-                // neighbors
-                vec3 left = m_colorBuffer[point2idx(x - 1, y)];
-                vec3 right = m_colorBuffer[point2idx(x + 1, y)];
-                vec3 up = m_colorBuffer[point2idx(x, y - 1)];
-                vec3 down = m_colorBuffer[point2idx(x, y + 1)];
-
-                // detect high contrast
-                float edgeThreshold = 0.2f; 
-                bool isEdge = (math::distance(currentColor, left) > edgeThreshold ||
-                            math::distance(currentColor, right) > edgeThreshold ||
-                            math::distance(currentColor, up) > edgeThreshold ||
-                            math::distance(currentColor, down) > edgeThreshold);
-
-                // if border
-                if (isEdge)
-                {
-                    vec3 averageColor = (left + right + up + down + currentColor) / 5.0f;
-                    smoothedColorBuffer[idx] = averageColor;
-                }
+                importantPixels.push_back(idx);
             }
         }
-
-        
-        m_colorBuffer = smoothedColorBuffer;
     }
 
+   
+    for (int idx : importantPixels)
+    {
+        
+        int x = idx % m_width;
+        int y = idx / m_width;
+
+        vec4 originWorld = getModelView().inverse() * vec4(0, 0, 0, 1);
+
+        vec3 color(0.0f);
+
+        
+        for (int i = 0; i < 4; ++i)
+        {
+            float offsetX = (i % 2 == 0 ? 0.25f : -0.25f);
+            float offsetY = (i < 2 ? 0.25f : -0.25f);
+
+            vec4 pixelWorld = m_PVM.inverse() * vec4(x + offsetX, y + offsetY, -1, 1);
+            pixelWorld = pixelWorld / pixelWorld.w;
+
+            vec3 rayDir = math::normalize(vec3(pixelWorld) - vec3(originWorld));
+            Ray ray(originWorld, rayDir);
+
+            color += castRay(ray); //4 rays
+        }
+
+        color /= 4.0f; //Average
+
+        
+        m_colorBuffer[idx] = color;
+        }
+    }
+
+
+        
 
     void Context::setCurrentMaterial(std::shared_ptr<Material> material)
     {
