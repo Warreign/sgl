@@ -513,10 +513,13 @@ namespace sgl
                         closestPrimitive = primitive;
                     }
                 }
-                
+            
                 vec3 phongColor = closestPrimitive ?
-                    // calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection), math::normalize(vec3(originWorld) - closestIntersection)) :
+#ifndef SGL_COOK_TORRANCE                
+                    calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection), math::normalize(vec3(originWorld) - closestIntersection)) :
+#else                    
                     calculateCookTorrance(closestPrimitive->getMaterial(), closestIntersection, vec3(originWorld), closestPrimitive->getNormal(closestIntersection)) :
+#endif                    
                     // (closestPrimitive->getMaterial().color) :
                     m_clearColor;
 

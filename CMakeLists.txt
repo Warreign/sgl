@@ -101,6 +101,11 @@ target_link_libraries(${NAME} sgl ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
 # Set output directory.
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 
+target_compile_definitions(sgl
+  PUBLIC
+    SGL_COOK_TORRANCE
+)
+
 target_compile_definitions(${NAME} 
   PRIVATE
     # TEST0
