@@ -20,6 +20,10 @@
 
 namespace sgl
 {
+    bool DOF = true;
+    float apertureSize = 64;
+    float focalLength = 2;
+    int numberOfRays = 16;
 
     Context::Context()
         : m_id(-1),
@@ -239,12 +243,13 @@ namespace sgl
         putPixelRowDepth(start.x, end.x, start.y, start.z, end.z, color);
     }
 
-    vec3 Context::castRay(const Ray& ray, int depth) const 
+    vec3 Context::castRay(const Ray& ray, int depth, vec3 pixelWorld, int xp, int yp) const
     {   
         if (depth > Ray::MAX_DEPTH)
         {
             return m_clearColor;
         }
+
 
         vec3 resultColor;
 
@@ -252,6 +257,33 @@ namespace sgl
 
         if (anyHit)
         {
+            if (DOF && depth == 0)
+            {
+                vec3 accumulatedColor = vec3(0);
+                float d1 = 1;
+                float d2 = math::distance(ray.origin, pixelWorld);
+
+                vec3 P = ray.origin + ((d2) / (d1 / (d1 + focalLength))) * ray.dir;
+
+                int numOfAxis = (int)sqrt(numberOfRays);
+                float offset = 1 / numOfAxis;
+
+                for (int i = 0; i < numberOfRays; ++i)
+                {
+                    float offsetX = (i % 2 == 0 ? offset : -offset);
+                    float offsetY = (i < 2 ? offset : -offset);
+
+                    vec4 pixelWorldSkewed = m_PVM.inverse() * vec4(xp + offsetX, yp + offsetY, -1, 1);
+                    pixelWorldSkewed = pixelWorldSkewed / pixelWorldSkewed.w;
+
+                    vec3 rayDir = math::normalize(P - vec3(pixelWorldSkewed.x, pixelWorldSkewed.y, pixelWorldSkewed.z));
+                    Ray ray(pixelWorldSkewed, rayDir);
+                    accumulatedColor += castRay(ray, depth + 1, pixelWorld, xp, yp);
+                }
+
+                return accumulatedColor / float(numberOfRays);
+            }
+
             vec3 normal = hitPrimitive->getNormal(hitPoint);
             float ior = hitPrimitive->getMaterial().ior;
             
@@ -264,7 +296,7 @@ namespace sgl
             vec3 reflected = vec3(0);
             if (hitPrimitive->getMaterial().ks != 0) {
                 vec3 reflectedDir = math::reflect(ray.dir, normal);
-                reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir, ray.type), depth+1);
+                reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir, ray.type), depth+1, pixelWorld, xp, yp);
             }
 
             vec3 refracted = vec3(0);
@@ -273,11 +305,13 @@ namespace sgl
                 if (refractedDir != vec3())
                 {
                     Ray::Type rayType = ray.type == Ray::Type::INSIDE ? Ray::Type::NORMAL : Ray::Type::INSIDE;
-                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.0018, refractedDir, rayType), depth + 1);
+                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.0018, refractedDir, rayType), depth + 1, pixelWorld, xp, yp);
                 }
             }
         
             resultColor = calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint));
+
+
 
             return resultColor + reflected + refracted;
         }
@@ -593,7 +627,7 @@ namespace sgl
                 vec3 rayDir = math::normalize(vec3(pixelWorld) - vec3(originWorld));
                 Ray primary(originWorld, rayDir);
 
-                vec3 color = castRay(primary);
+                vec3 color = castRay(primary, 0, vec3(pixelWorld.x, pixelWorld.y, pixelWorld.z), xp, yp);
 
                 putPixel(vec3(xp, yp, 0), color);
             }
