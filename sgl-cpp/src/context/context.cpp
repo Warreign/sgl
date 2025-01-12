@@ -579,14 +579,6 @@ namespace sgl
         {
             vec3 L = light->getDirection(intersectionPoint);
 
-            Ray lightRay(intersectionPoint + L * 0.0001, L);
-            auto [anyHit, a, b] = traceRay(lightRay, true);
-
-            if (anyHit)
-            {
-                continue;
-            }
-
             float roughness = std::sqrt(2.0f / (material.shine + 2.0f));
 
             // Vectors
