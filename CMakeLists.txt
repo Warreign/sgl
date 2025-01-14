@@ -101,14 +101,19 @@ target_link_libraries(${NAME} sgl ${GLUT_LIBRARIES} ${OPENGL_LIBRARIES})
 # Set output directory.
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 
+target_compile_definitions(sgl
+  PUBLIC
+    SGL_TEXTURES_ENABLED
+    )
+
 target_compile_definitions(${NAME} 
   PRIVATE
     # TEST0
     # TEST1
     # TEST2
     # TEST3
-    # TEST4
-    TEST5
+    TEST4
+    # TEST5
     )
 
 # Properties.

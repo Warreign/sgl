@@ -9,6 +9,7 @@
 #include "sgl.h"
 
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <iostream>
 #include <cassert>
@@ -52,7 +53,8 @@ namespace sgl
           m_elementType(SGL_LAST_ELEMENT_TYPE),
           m_PVM(mat4::identity),
           m_isSpecifyingScene(false),
-          m_scenePrimitives(0)
+          m_scenePrimitives(0),
+          m_currentMaterial(nullptr)
     {
         m_modelStack.push_back(mat4::identity);
         m_projectionStack.push_back(mat4::identity);
@@ -280,7 +282,7 @@ namespace sgl
         
             for (auto light : m_sceneLights)
             {
-                resultColor += calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint), *light);
+                resultColor += calculatePhong(hitPrimitive->getMaterial(), hitPoint, hitPrimitive->getNormal(hitPoint), math::normalize(vec3(ray.origin) - hitPoint), *light, hitPrimitive);
             }
 
             return resultColor + reflected + refracted;
@@ -403,11 +405,15 @@ namespace sgl
                     const vec4& v1 = m_vertexBuffer[0];
                     const vec4& v2 = m_vertexBuffer[1];
                     const vec4& v3 = m_vertexBuffer[2];
+#ifndef SGL_TEXTURES_ENABLED                    
                     m_scenePrimitives.emplace_back(std::make_shared<Triangle>(m_currentMaterial, v1, v2, v3));
+#else                    
+                    m_scenePrimitives.emplace_back(std::make_shared<Triangle>(m_currentMaterial, v1, v2, v3, vec2(1, 1), vec2(1,0), vec2(0, 0)));
+#endif
                     if (m_currentMaterial->isEmissive())
                     {
                         const EmissiveMaterial& emissiveMaterial = static_cast<EmissiveMaterial&>(*m_currentMaterial);
-                        addLight(std::make_shared<AreaLight>(v1, v2, v3, emissiveMaterial.color, emissiveMaterial.c0, emissiveMaterial.c1, emissiveMaterial.c2));
+                        addLight(std::make_shared<AreaLight>(v1, v2, v3, emissiveMaterial.getColor(), emissiveMaterial.c0, emissiveMaterial.c1, emissiveMaterial.c2));
                     }
                     break;
                 }
@@ -636,7 +642,14 @@ namespace sgl
 
     void Context::setCurrentMaterial(std::shared_ptr<Material> material)
     {
+#ifndef SGL_TEXTURES_ENABLED
         m_currentMaterial = material;
+#else
+        if (!m_currentMaterial)
+        {
+            m_currentMaterial = std::make_shared<TexturedMaterial>("test.jpeg", material->kd, material->ks, material->shine, 0, 0);
+        }
+#endif        
     }
 
     void Context::setCurrentEnvironMap(const EnvironmentMap& envMap)
@@ -650,11 +663,11 @@ namespace sgl
         m_sceneLights.push_back(light);
     }
 
-    vec3 Context::calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera, const Light& light) const
+    vec3 Context::calculatePhong(const Material& material, const vec3& intersectionPoint, const vec3& surfaceNormal, const vec3& camera, const Light& light, std::shared_ptr<Primitive> primitive) const
     {
         if (material.isEmissive())
         {
-            return material.color;
+            return material.getColor();
         }
 
         const int samples = light.isAreaLight() ? AreaLight::SAMPLE_NUMBER : 1;
@@ -685,7 +698,14 @@ namespace sgl
 
             float diff = std::fmax(0.0f, math::dotProduct(surfaceNormal, lightDir));
 
-            diffuse = (lightColor * material.color * material.kd * diff);
+#ifdef SGL_TEXTURES_ENABLED
+            vec2 texCoords = primitive->getTextureCoords(intersectionPoint);
+            vec3 color = material.getColor(texCoords);
+#else            
+            vec3 color = material.getColor();
+#endif            
+
+            diffuse = (lightColor * color * material.kd * diff);
 
             float spec = std::pow(std::fmax(0.0f, math::dotProduct(camera, reflectedDir)), material.shine);
 

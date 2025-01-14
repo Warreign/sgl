@@ -1,9 +1,13 @@
 #include "primitive.h"
 #include "math/utils.h"
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include "math/utils.h"
 #include "math/internal/vector_internal.h"
+#include "math/vector.h"
+#define _USE_MATH_DEFINES
+#include "math.h"
 
 namespace sgl
 {
@@ -27,10 +31,16 @@ vec3 Polygon::intersect(const Ray& ray)
 */
 
 // Triangle
-Triangle::Triangle(std::shared_ptr<Material> material, const vec3& v1, const vec3& v2, const vec3& v3)
+Triangle::Triangle(std::shared_ptr<Material> material, const vec3& v0, const vec3& v1, const vec3& v2, const vec3& t1, const vec3& t2, const vec3& t3)
     : Primitive(material), 
-      m_vertices({v1, v2, v3}),
-      m_normal(math::normalize(math::crossProduct(v2-v1, v3-v1)))
+      m_vertices({v0, v1, v2}),
+	  m_textureCoords({t1, t2, t3}),
+      m_normal(math::normalize(math::crossProduct(v1-v0, v2-v0))),
+	  m_v0v1(v1 - v0),
+	  m_v0v2(v2 - v0),
+	  m_v1v2(v2 - v1),
+	  m_v2v0(v0 - v2),
+	  m_area(0.5 * math::length(math::crossProduct(v1 - v0, v2 - v0)))
 {
 }
 
@@ -84,6 +94,31 @@ void Triangle::applyTransform(const mat4& matrix)
     }
 }
 
+vec2 Triangle::getTextureCoords(const vec3& point) const 
+{
+	vec3 v1p =point - m_vertices[1];
+
+	vec3 C = math::crossProduct(m_v1v2, v1p);
+
+	float u = (math::length(C) / 2) / m_area;
+
+	vec3 v2p = point - m_vertices[2];
+
+	C = math::crossProduct(m_v2v0, v2p);
+
+	float v = (math::length(C) / 2) / m_area;
+
+	vec3 v0p = point - m_vertices[0];
+	 
+	C = math::crossProduct(m_v0v1, v0p);
+
+	float w = 1 - u - v;
+
+	vec2 texCoord = u * m_textureCoords[0] + v * m_textureCoords[1] + w * m_textureCoords[2];
+
+	return texCoord;
+}
+
 
 // Sphere
 Sphere::Sphere(std::shared_ptr<Material> material, const vec3& center, float radius)
@@ -125,6 +160,14 @@ vec3 Sphere::getNormal(const vec3& point) const
 void Sphere::applyTransform(const mat4& matrix) 
 {
     m_center = matrix * vec4(m_center, 1);    
+}
+
+vec2 Sphere::getTextureCoords(const vec3& point) const 
+{
+	vec3 dir = math::normalize(point - m_center);
+	float u = 0.5 - atan2(dir.z, dir.x) / (M_PI * 2);
+	float v = 0.5 + asin(dir.y) / M_PI;
+    return vec2(u, v);
 }
 
 const Material& Primitive::getMaterial() const 
