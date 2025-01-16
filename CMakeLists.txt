@@ -104,6 +104,7 @@ set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 target_compile_definitions(sgl
   PUBLIC
     SGL_TEXTURES_ENABLED
+    SGL_ANTIALIASING_ENABLED
     )
 
 target_compile_definitions(${NAME} 
