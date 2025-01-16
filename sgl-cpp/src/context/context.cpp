@@ -21,8 +21,8 @@
 namespace sgl
 {
     bool DOF = true;
-    float apertureSize = 64;
-    float focalLength = 2;
+    float apertureSize = 256;
+    float focalLength = 900;//1005.5f;
     int numberOfRays = 16;
 
     Context::Context()
@@ -243,6 +243,22 @@ namespace sgl
         putPixelRowDepth(start.x, end.x, start.y, start.z, end.z, color);
     }
 
+    int randomIntInRange(int min, int max)
+    {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_int_distribution<int> dis(min, max);
+        return dis(gen);
+    }
+
+    float randomFloatInRange(float min, float max)
+    {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        std::uniform_real_distribution<float> dis(min, max);
+        return dis(gen);
+    }
+
     vec3 Context::castRay(const Ray& ray, int depth, vec3 pixelWorld, int xp, int yp) const
     {   
         if (depth > Ray::MAX_DEPTH)
@@ -259,26 +275,40 @@ namespace sgl
         {
             if (DOF && depth == 0)
             {
+                /*float d1 = 1;
+                float d2 = math::distance(ray.origin, pixelWorld);
+                vec3 P = ray.origin + ((d2) / (d1 / (d1 + 900))) * ray.dir;
+
+                if (math::distance(ray.origin, hitPoint) <= math::distance(ray.origin, P)) {
+
+                    return vec3(1, 0, 0);
+                }
+                else {
+                    return vec3(0);
+                }*/
+
                 vec3 accumulatedColor = vec3(0);
                 float d1 = 1;
                 float d2 = math::distance(ray.origin, pixelWorld);
 
                 vec3 P = ray.origin + ((d2) / (d1 / (d1 + focalLength))) * ray.dir;
 
-                int numOfAxis = (int)sqrt(numberOfRays);
-                float offset = 1 / numOfAxis;
+                int numOfAxis = (int)sqrt(apertureSize);
+                float step = numOfAxis/2;
 
-                for (int i = 0; i < numberOfRays; ++i)
+                for (int i = 0; i < numberOfRays; i++)
                 {
-                    float offsetX = (i % 2 == 0 ? offset : -offset);
-                    float offsetY = (i < 2 ? offset : -offset);
+                        float jitterX = randomIntInRange(-step, step);
+                        float jitterY = randomIntInRange(-step, step);
 
-                    vec4 pixelWorldSkewed = m_PVM.inverse() * vec4(xp + offsetX, yp + offsetY, -1, 1);
-                    pixelWorldSkewed = pixelWorldSkewed / pixelWorldSkewed.w;
+                        //std::cout << apertureSize << ", " << numOfAxis << " | " << jitterX << " " << jitterY << std::endl;
 
-                    vec3 rayDir = math::normalize(P - vec3(pixelWorldSkewed.x, pixelWorldSkewed.y, pixelWorldSkewed.z));
-                    Ray ray(pixelWorldSkewed, rayDir);
-                    accumulatedColor += castRay(ray, depth + 1, pixelWorld, xp, yp);
+                        vec4 pixelWorldSkewed = m_PVM.inverse() * vec4(xp + jitterX, yp + jitterY, -1, 1);
+                        pixelWorldSkewed = pixelWorldSkewed / pixelWorldSkewed.w;
+
+                        vec3 rayDir = math::normalize(P - vec3(pixelWorldSkewed.x, pixelWorldSkewed.y, pixelWorldSkewed.z));
+                        Ray ray(pixelWorldSkewed, rayDir);
+                        accumulatedColor += castRay(ray, depth + 1, pixelWorld, xp, yp);
                 }
 
                 return accumulatedColor / float(numberOfRays);

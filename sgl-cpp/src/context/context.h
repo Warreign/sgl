@@ -10,6 +10,7 @@
 #include <memory>
 #include <vector>
 #include <cstdint>
+#include <random>
 
 namespace sgl
 {

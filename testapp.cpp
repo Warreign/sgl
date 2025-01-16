@@ -52,8 +52,8 @@
 #define WIDTH 512
 #define HEIGHT 512
 #define TEST_4A
-#define TEST_4B
-#define TEST_4C
+//#define TEST_4B
+//#define TEST_4C
 #endif
 
 #ifdef TEST5
@@ -1090,7 +1090,8 @@ void myKeyboard(unsigned char key, int x, int y) {
 #endif
 
 int main(int argc, char **argv) {
-    std::filesystem::current_path("C:/Users/matej/Desktop/Škola/Magistr/1. Semestr/APG/sgl+testapp/apg-hw/sgl");
+    std::filesystem::current_path(L"C:/Users/mathe/Desktop/Škola/Magistr/1. Semestr/APG/git/apg-hw/sgl");
+                                 //  C:\Users\mathe\Desktop\Škola\Magistr\1. Semestr\APG\git\apg - hw\sgl
 
   runMultiplier = (argc > 1 ? atoi(argv[1]) : 1);
   resolutionDivisor = (argc > 2 ? atoi(argv[2]) : 1);
