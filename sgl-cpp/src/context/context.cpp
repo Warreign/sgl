@@ -526,7 +526,9 @@ namespace sgl
                 putPixel(vec3(xp, yp, 0), phongColor);
             }
         }
+#ifdef SGL_ANTIALIASING_ENABLED        
         applyAdaptiveAntialiasing();
+#endif
     }
 
     void Context::applyAdaptiveAntialiasing()

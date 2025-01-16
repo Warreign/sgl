@@ -106,6 +106,17 @@ target_compile_definitions(sgl
     SGL_COOK_TORRANCE
 )
 
+target_compile_definitions(sgl
+  PUBLIC
+    SGL_COOK_TORRANCE
+)
+
+target_compile_definitions(sgl
+  PUBLIC
+    SGL_TEXTURES_ENABLED
+    SGL_ANTIALIASING_ENABLED
+    )
+
 target_compile_definitions(${NAME} 
   PRIVATE
     # TEST0
