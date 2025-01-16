@@ -166,6 +166,9 @@ private:
     EnvironmentMap m_currentEnvMap;
     bool m_hasEnvironmentMap = false;
 
+    // Adaptive antialising
+     void Context::applyAdaptiveAntialiasing();
+
 };
 
 } // namespace sgl
