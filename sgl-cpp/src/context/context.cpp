@@ -20,10 +20,11 @@
 
 namespace sgl
 {
+    // Bonus task depth of field
     bool DOF = true;
-    float apertureSize = 256;
-    float focalLength = 900;//1005.5f;
-    int numberOfRays = 16;
+    static const float apertureSize = 256;
+    static const float focalLength = 900;
+    static const int numberOfRays = 16;
 
     Context::Context()
         : m_id(-1),
@@ -243,14 +244,6 @@ namespace sgl
         putPixelRowDepth(start.x, end.x, start.y, start.z, end.z, color);
     }
 
-    int randomIntInRange(int min, int max)
-    {
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        std::uniform_int_distribution<int> dis(min, max);
-        return dis(gen);
-    }
-
     float randomFloatInRange(float min, float max)
     {
         static std::random_device rd;
@@ -259,7 +252,7 @@ namespace sgl
         return dis(gen);
     }
 
-    vec3 Context::castRay(const Ray& ray, int depth, vec3 pixelWorld, int xp, int yp) const
+    vec3 Context::castRay(const Ray& ray, int depth, vec3 pixelWorld) const
     {   
         if (depth > Ray::MAX_DEPTH)
         {
@@ -275,18 +268,6 @@ namespace sgl
         {
             if (DOF && depth == 0)
             {
-                /*float d1 = 1;
-                float d2 = math::distance(ray.origin, pixelWorld);
-                vec3 P = ray.origin + ((d2) / (d1 / (d1 + 900))) * ray.dir;
-
-                if (math::distance(ray.origin, hitPoint) <= math::distance(ray.origin, P)) {
-
-                    return vec3(1, 0, 0);
-                }
-                else {
-                    return vec3(0);
-                }*/
-
                 vec3 accumulatedColor = vec3(0);
                 float d1 = 1;
                 float d2 = math::distance(ray.origin, pixelWorld);
@@ -298,17 +279,14 @@ namespace sgl
 
                 for (int i = 0; i < numberOfRays; i++)
                 {
-                        float jitterX = randomIntInRange(-step, step);
-                        float jitterY = randomIntInRange(-step, step);
+                        float jitterX = randomFloatInRange(-step, step);
+                        float jitterY = randomFloatInRange(-step, step);
 
-                        //std::cout << apertureSize << ", " << numOfAxis << " | " << jitterX << " " << jitterY << std::endl;
+                        vec3 pixelWorldSkewed = vec3(pixelWorld.x + jitterX, pixelWorld.y + jitterY, pixelWorld.z);
 
-                        vec4 pixelWorldSkewed = m_PVM.inverse() * vec4(xp + jitterX, yp + jitterY, -1, 1);
-                        pixelWorldSkewed = pixelWorldSkewed / pixelWorldSkewed.w;
-
-                        vec3 rayDir = math::normalize(P - vec3(pixelWorldSkewed.x, pixelWorldSkewed.y, pixelWorldSkewed.z));
+                        vec3 rayDir = math::normalize(P - pixelWorldSkewed);
                         Ray ray(pixelWorldSkewed, rayDir);
-                        accumulatedColor += castRay(ray, depth + 1, pixelWorld, xp, yp);
+                        accumulatedColor += castRay(ray, depth + 1, pixelWorld);
                 }
 
                 return accumulatedColor / float(numberOfRays);
@@ -326,7 +304,7 @@ namespace sgl
             vec3 reflected = vec3(0);
             if (hitPrimitive->getMaterial().ks != 0) {
                 vec3 reflectedDir = math::reflect(ray.dir, normal);
-                reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir, ray.type), depth+1, pixelWorld, xp, yp);
+                reflected = hitPrimitive->getMaterial().ks * castRay(Ray(hitPoint, reflectedDir, ray.type), depth+1, pixelWorld);
             }
 
             vec3 refracted = vec3(0);
@@ -335,7 +313,7 @@ namespace sgl
                 if (refractedDir != vec3())
                 {
                     Ray::Type rayType = ray.type == Ray::Type::INSIDE ? Ray::Type::NORMAL : Ray::Type::INSIDE;
-                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.0018, refractedDir, rayType), depth + 1, pixelWorld, xp, yp);
+                    refracted = hitPrimitive->getMaterial().T * castRay(Ray(hitPoint + refractedDir * 0.0018, refractedDir, rayType), depth + 1, pixelWorld);
                 }
             }
         
@@ -657,7 +635,7 @@ namespace sgl
                 vec3 rayDir = math::normalize(vec3(pixelWorld) - vec3(originWorld));
                 Ray primary(originWorld, rayDir);
 
-                vec3 color = castRay(primary, 0, vec3(pixelWorld.x, pixelWorld.y, pixelWorld.z), xp, yp);
+                vec3 color = castRay(primary, 0, vec3(pixelWorld.x, pixelWorld.y, pixelWorld.z));
 
                 putPixel(vec3(xp, yp, 0), color);
             }
