@@ -502,7 +502,12 @@ void sglMaterial(const float r, const float g, const float b, const float kd, co
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
+#ifndef SGL_TEXTURES_ENABLED
     context->setCurrentMaterial(std::make_shared<sgl::Material>(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
+#else
+    context->setCurrentMaterial(std::make_shared<sgl::TexturedMaterial>("test.jpeg", kd, ks, shine, T, ior));
+#endif
+
 }
 
 void sglPointLight(const float x, const float y, const float z, const float r, const float g, const float b)
