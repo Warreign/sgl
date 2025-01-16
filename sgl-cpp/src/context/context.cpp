@@ -642,14 +642,7 @@ namespace sgl
 
     void Context::setCurrentMaterial(std::shared_ptr<Material> material)
     {
-#ifndef SGL_TEXTURES_ENABLED
         m_currentMaterial = material;
-#else
-        if (!m_currentMaterial)
-        {
-            m_currentMaterial = std::make_shared<TexturedMaterial>("test.jpeg", material->kd, material->ks, material->shine, 0, 0);
-        }
-#endif        
     }
 
     void Context::setCurrentEnvironMap(const EnvironmentMap& envMap)
