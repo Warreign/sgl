@@ -499,31 +499,9 @@ namespace sgl
                 vec3 rayDir = math::normalize(vec3(pixelWorld) - vec3(originWorld));
                 Ray primary(originWorld, rayDir);
 
-                std::shared_ptr<Primitive> closestPrimitive = nullptr;
-                vec3 closestIntersection;
-                float closestDistance = std::numeric_limits<float>::max();
-                for (const auto& primitive : m_scenePrimitives)
-                {
-                    auto [isIntersected, point] = primitive->intersect(primary);
-                    float distance = math::distance(vec3(originWorld), point);
-                    if (isIntersected && distance <= closestDistance)
-                    {
-                        closestDistance = distance;
-                        closestIntersection = point;
-                        closestPrimitive = primitive;
-                    }
-                }
-            
-                vec3 phongColor = closestPrimitive ?
-#ifndef SGL_COOK_TORRANCE                
-                    calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection), math::normalize(vec3(originWorld) - closestIntersection)) :
-#else                    
-                    calculateCookTorrance(closestPrimitive->getMaterial(), closestIntersection, vec3(originWorld), closestPrimitive->getNormal(closestIntersection)) :
-#endif                    
-                    // (closestPrimitive->getMaterial().color) :
-                    m_clearColor;
+                vec3 color = castRay(primary);
 
-                putPixel(vec3(xp, yp, 0), phongColor);
+                putPixel(vec3(xp, yp, 0), color);
             }
         }
 #ifdef SGL_ANTIALIASING_ENABLED        
@@ -531,7 +509,7 @@ namespace sgl
 #endif
     }
 
-    void Context::applyAdaptiveAntialiasing()
+void Context::applyAdaptiveAntialiasing()
 {
     std::vector<int> importantPixels;
 
@@ -612,7 +590,7 @@ namespace sgl
         m_sceneLights.push_back(light);
     }
 
-    vec3 Context::calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir)
+    vec3 Context::calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir) const
     {
         vec3 result(0.0f, 0.0f, 0.0f);    
 
@@ -1048,6 +1026,35 @@ namespace sgl
     const mat4& Context::getProjection() const 
     {
         return m_projectionStack.back();
+    }
+
+    vec3 Context::castRay(const Ray& ray) const {
+
+        std::shared_ptr<Primitive> closestPrimitive = nullptr;
+        vec3 closestIntersection;
+        float closestDistance = std::numeric_limits<float>::max();
+        for (const auto& primitive : m_scenePrimitives)
+        {
+            auto [isIntersected, point] = primitive->intersect(ray);
+            float distance = math::distance(vec3(ray.origin), point);
+            if (isIntersected && distance <= closestDistance)
+            {
+                closestDistance = distance;
+                closestIntersection = point;
+                closestPrimitive = primitive;
+            }
+        }
+
+        if (closestPrimitive == nullptr)
+        {
+            return m_clearColor;
+        }
+    
+#ifndef SGL_COOK_TORRANCE                
+        return calculatePhong(closestPrimitive->getMaterial(), closestIntersection, closestPrimitive->getNormal(closestIntersection), math::normalize(ray.origin - closestIntersection));
+#else                    
+        return calculateCookTorrance(closestPrimitive->getMaterial(), closestIntersection, ray.origin, closestPrimitive->getNormal(closestIntersection));
+#endif                    
     }
 
     void Context::updatePVM()

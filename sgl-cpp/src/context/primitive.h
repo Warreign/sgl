@@ -1,5 +1,6 @@
 #pragma once
 
+#include "context/material.h"
 #include "material.h"
 #include "math/vector.h"
 #include "context/ray.h"
@@ -7,6 +8,7 @@
 
 #include <array>
 #include <initializer_list>
+#include <memory>
 #include <tuple>
 #include <vector>
 
@@ -20,7 +22,7 @@ public:
     Primitive(const Primitive&) = delete;
     Primitive(Primitive&&) = delete;
 
-    Primitive(const Material& material) :
+    Primitive(std::shared_ptr<Material> material) :
         m_material(material)
     {}
 
@@ -34,7 +36,7 @@ public:
     const Material& getMaterial() const;
 
 private:
-    Material m_material;
+    std::shared_ptr<Material> m_material;
 
 };
 
@@ -64,7 +66,7 @@ class Triangle : public Primitive
 public:
     Triangle() = delete;
 
-    Triangle(const Material& material, const vec3& v1, const vec3& v2, const vec3& v3);
+    Triangle(std::shared_ptr<Material> material, const vec3& v1, const vec3& v2, const vec3& v3);
 
     virtual std::tuple<bool, vec3> intersect(const Ray& ray) const override;
     virtual vec3 getNormal(const vec3& point) const override;
@@ -82,7 +84,7 @@ class Sphere : public Primitive
 public:
     Sphere() = delete;
 
-    Sphere(const Material& material, const vec3& center, float radius);
+    Sphere(std::shared_ptr<Material> material, const vec3& center, float radius);
 
     virtual std::tuple<bool, vec3> intersect(const Ray& ray) const override;
     virtual vec3 getNormal(const vec3& point) const override;

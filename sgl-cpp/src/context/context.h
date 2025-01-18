@@ -66,10 +66,10 @@ public:
     void endScene();
     bool isSpecifyingScene() const;
     void renderScene();
-    void setCurrentMaterial(const Material& material);
+    void setCurrentMaterial(std::shared_ptr<Material> material);
     void addLight(std::shared_ptr<Light> light);
     // Returns color of a pixel according to phong model
-    vec3 calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir);
+    vec3 calculatePhong(const Material &material, const vec3 &intersectionPoint, const vec3 &surfaceNormal, const vec3& cameraDir) const;
     vec3 calculateCookTorrance(const Material& material, const vec3& intersectionPoint, const vec3& cameraLocationPoint, const vec3& surfaceNormal) const;
     void addSphere(const vec3& center, float radius);
 //
@@ -112,6 +112,7 @@ private:
     inline const mat4& getModelView() const;
     inline const mat4& getProjection() const;
 //
+    vec3 castRay(const Ray& ray) const;
 
     int m_id;
 
@@ -150,10 +151,10 @@ private:
     bool m_isSpecifyingScene;
     std::vector<std::shared_ptr<Primitive>> m_scenePrimitives;
     std::vector<std::shared_ptr<Light>> m_sceneLights;
-    Material m_currentMaterial;
+    std::shared_ptr<Material> m_currentMaterial;
 
     // Adaptive antialising
-     void Context::applyAdaptiveAntialiasing();
+     void applyAdaptiveAntialiasing();
 
 };
 

@@ -502,7 +502,7 @@ void sglMaterial(const float r, const float g, const float b, const float kd, co
         m.setError(SGL_INVALID_OPERATION);
         return;
     }
-    context->setCurrentMaterial(sgl::Material(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
+    context->setCurrentMaterial(std::make_shared<sgl::Material>(sgl::vec3(r,g,b), kd, ks, shine, T, ior));
     //std::cout << "adding mat, kd = " << kd << ", color: " << r << " " << g << " " << b << ", ks: " << ks << std::endl;
 }
 

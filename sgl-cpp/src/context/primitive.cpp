@@ -26,7 +26,7 @@ vec3 Polygon::intersect(const Ray& ray)
 */
 
 // Triangle
-Triangle::Triangle(const Material& material, const vec3& v1, const vec3& v2, const vec3& v3)
+Triangle::Triangle(std::shared_ptr<Material> material, const vec3& v1, const vec3& v2, const vec3& v3)
     : Primitive(material), 
       m_vertices({v1, v2, v3}),
       m_normal(math::normalize(math::crossProduct(v2-v1, v3-v1)))
@@ -79,7 +79,7 @@ void Triangle::applyTransform(const mat4& matrix)
 
 
 // Sphere
-Sphere::Sphere(const Material& material, const vec3& center, float radius)
+Sphere::Sphere(std::shared_ptr<Material> material, const vec3& center, float radius)
     : Primitive(material),
       m_center(center),
       m_radius(radius)
@@ -119,7 +119,7 @@ void Sphere::applyTransform(const mat4& matrix)
 
 const Material& Primitive::getMaterial() const 
 {
-    return m_material;
+    return *m_material;
 }
 
 } // namespace sgl
