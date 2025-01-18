@@ -167,7 +167,7 @@ private:
     bool m_hasEnvironmentMap = false;
 
     // Adaptive antialising
-     void Context::applyAdaptiveAntialiasing();
+     void applyAdaptiveAntialiasing();
 
 };
 
